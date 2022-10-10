@@ -1,4 +1,5 @@
 import os
+import sqlite3
 import traceback
 import requests
 import hoshino
@@ -14,6 +15,7 @@ sv_help = '''
 注：+ 号不用输入
 [ai绘图/生成涩图+tag] 关键词仅支持英文，用逗号隔开
 [以图绘图/以图生图+tag+图片] 注意图片尽量长宽都在765像素以下，不然会被狠狠地压缩
+[我的xp] 查询你使用的tag频率
 加{}代表增加权重,可以加很多个,有消息称加入英语短句识别
 可选参数
 &shape=Portrait/Landscape/Square 默认Portrait竖图
@@ -191,6 +193,11 @@ async def gen_pic(bot, ev: CQEvent):
                 await bot.send(ev, '不准涩涩')
                 return
         await bot.send(ev, f"在画了在画了，请稍后...\n(今日剩余{get_config('base', 'daily_max') - tlmt.get_num(uid)}次)", at_sender=True)
+        
+        taglist = text.split(',')
+        for tag in taglist:
+            add_xp_num(uid, tag)
+        
         get_url = word2img_url + text + token
         res = await aiorequests.get(get_url)
         image = await res.content
@@ -253,6 +260,85 @@ async def gen_pic_from_pic(bot, ev: CQEvent):
         await bot.send(ev, f"生成失败…{e}")
         return
 
+
+XP_DB_PATH = os.path.expanduser('~/.hoshino/AI_image_xp.db')
+
+class XpCounter:
+    def __init__(self):
+        os.makedirs(os.path.dirname(XP_DB_PATH), exist_ok=True)
+        self._create_table()
+    def _connect(self):
+        return sqlite3.connect(XP_DB_PATH)
+        
+    def _create_table(self):
+        try:
+            self._connect().execute('''CREATE TABLE IF NOT EXISTS XP_NUM
+                          (UID             INT    NOT NULL,
+                           KEYWORD         TEXT   NOT NULL,
+                           NUM             INT    NOT NULL,
+                           PRIMARY KEY(UID,KEYWORD));''')
+        except:
+            raise Exception('创建表发生错误')
+            
+    def _add_xp_num(self, uid, keyword):
+        try:
+        
+            num = self._get_xp_num(uid, keyword)
+            if num == None:
+                num = 0
+            num += 1
+            with self._connect() as conn:
+                conn.execute(
+                    "INSERT OR REPLACE INTO XP_NUM (UID,KEYWORD,NUM) \
+                                VALUES (?,?,?)", (uid, keyword, num)
+                )
+                  
+        except:
+            raise Exception('更新表发生错误')
+            
+    def _get_xp_num(self, uid, keyword):
+        try:
+            r = self._connect().execute("SELECT NUM FROM XP_NUM WHERE UID=? AND KEYWORD=?", (uid, keyword)).fetchone()
+            return 0 if r is None else r[0]
+        except:
+            raise Exception('查找表发生错误')
+    
+    def _get_xp_list(self, uid, num):
+        with self._connect() as conn:
+            r = conn.execute(
+                f"SELECT KEYWORD,NUM FROM XP_NUM WHERE UID={uid} ORDER BY NUM desc LIMIT {num}").fetchall()
+        return r if r else {}
+
+def get_xp_list(uid):
+    XP = XpCounter()
+    xp_list = XP._get_xp_list(uid, 15)
+    if len(xp_list)>0:
+        data = sorted(xp_list,key=lambda cus:cus[1],reverse=True)
+        new_data = []
+        for xp_data in data:
+            keyword, num = xp_data
+            new_data.append((keyword,num))
+        rankData = sorted(new_data,key=lambda cus:cus[1],reverse=True)
+        return rankData
+    else:
+        return []
+
+def add_xp_num(uid, keyword):
+    XP = XpCounter()
+    XP._add_xp_num(uid, keyword)
+    
+@sv.on_fullmatch(['我的XP', '我的xp'])
+async def get_my_xp(bot, ev: CQEvent):
+    xp_list = get_xp_list(ev.user_id)
+    uid = ev.user_id
+    msg = '您的XP信息为：\n'
+    if len(xp_list)>0:
+        for xpinfo in xp_list:
+            keyword, num = xpinfo
+            msg += f'关键词：{keyword}；查询次数：{num}\n'
+    else:
+        msg += '暂无您的XP信息'
+    await bot.send(ev, msg)  
 
 @sv.scheduled_job('cron', hour='2', minute='36')
 async def set_ban_list():
