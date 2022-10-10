@@ -1,6 +1,8 @@
 # AI_image_gen
  AI绘图hoshinobot插件版
 
+感谢群友上传的各种版本的AI绘图，这里缝合了一些实用功能进去，以后会看情况缝合更多的功能~
+
 ## 特点
 
 - 每日上限和频率限制
@@ -16,13 +18,13 @@
    git https://github.com/CYDXDianXian/AI_image_gen.git
    ```
 
-2. 更改配置文件`config.json`
+2. 更改配置文件`config.json`：
 
    在`api`中填写IP地址
 
    在`token`中填写你的token
 
-   ```json
+   ```python
    {
        "base": {
            "daily_max": 20,  # 每日上限次数
@@ -41,15 +43,15 @@
    }
    ```
 
-   注意，只有在`config.json`中更改配置才会生效，请不要修改`_init__.py`中的默认配置信息
+   注意，只有在`config.json`中更改配置才会生效，请不要修改`__init__.py`中的默认配置信息
 
-3. 安装依赖
+3. 安装依赖：
 
    ```
    pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
    ```
 
-4. 在`hoshino/config/__bot__.py`文件中，`MODULES_ON`里添加 "aidrawDB"
+4. 在`hoshino/config/__bot__.py`文件中，`MODULES_ON`里添加 "AI_image_gen"
 
 5. 运行Hoshinobot
 
