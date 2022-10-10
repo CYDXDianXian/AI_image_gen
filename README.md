@@ -1,6 +1,8 @@
 # AI_image_gen
  AI绘图hoshinobot插件版
 
+仓库地址：https://github.com/CYDXDianXian/AI_image_gen
+
 感谢群友上传的各种版本的AI绘图，这里缝合了一些实用功能进去，以后会看情况缝合更多的功能~
 
 ## 特点
