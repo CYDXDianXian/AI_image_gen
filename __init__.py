@@ -47,7 +47,7 @@ config_default = {
     },
     "NovelAI": {
         "api": "",  # 设置api，例如："11.222.333.444:5555"
-        "token": ""  # 设置你的token
+        "token": ""  # 设置你的token，例如："ADGdsvSFGsaA5S2D"
     },
     "ban_word": {
         "wordlist": ["r18", "naked", "vagina", "penis", "nsfw", "genital", "nude", "NSFW", "R18", "NAKED", "VAGINA", "PENIS", "GENITAL", "NUDE"]
