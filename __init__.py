@@ -188,10 +188,11 @@ async def gen_pic(bot, ev: CQEvent):
         return
     try:
         text = ev.message.extract_plain_text()
-        for i in wordlist:
-            if i in text:
-                await bot.send(ev, '不准涩涩')
-                return
+        if not priv.check_priv(ev, priv.SUPERUSER):
+            for i in wordlist:
+                if i in text:
+                    await bot.send(ev, '不准涩涩')
+                    return
         await bot.send(ev, f"在画了在画了，请稍后...\n(今日剩余{get_config('base', 'daily_max') - tlmt.get_num(uid)}次)", at_sender=True)
         
         taglist = text.split(',')
@@ -227,10 +228,11 @@ async def gen_pic_from_pic(bot, ev: CQEvent):
         return
     try:
         tag = ev.message.extract_plain_text()
-        for i in wordlist:
-            if i in tag:
-                await bot.send(ev, '不准涩涩')
-                return
+        if not priv.check_priv(ev, priv.SUPERUSER):
+            for i in wordlist:
+                if i in tag:
+                    await bot.send(ev, '不准涩涩')
+                    return
         if tag == "":
             await bot.send(ev, '以图绘图必须添加tag')
             return
