@@ -61,7 +61,7 @@
 
 6. 更新插件：
 
-   请在你的 `hoshino/modules/uma_plugin` 文件夹里，打开powershell输入 `git pull` ，运行完重启hoshinobot即可
+   请在你的 `hoshino/modules/AI_image_gen` 文件夹里，打开powershell输入 `git pull` ，运行完重启hoshinobot即可
 
 ## 使用方法
 
