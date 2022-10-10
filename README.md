@@ -74,3 +74,15 @@
 | 绘图 黑/白名单 新增/添加/移除/删除 群号 | 修改黑白名单(空格不能漏)                                     |
 | 黑名单列表/白名单列表                   | 查询黑白名单列表                                             |
 
+## 其他说明
+
+- 目前API都为私人搭建，你需要一个拥有有效付费计划的 [NovelAI](https://novelai.net/) 账号，本插件只使用 [NovelAI](https://novelai.net/) 搭建的API所提供的接口。付费计划请自行前往 [NovelAI](https://novelai.net/) 了解。(别问怎么搭建API，我很菜，我也不会QAQ，其他地方应该有教程的吧！）
+
+## 使用效果预览
+
+![image](https://user-images.githubusercontent.com/71607036/194919204-d3a3e4aa-05b4-4d5c-a0de-76a9d7b62b6e.png)
+
+![image](https://user-images.githubusercontent.com/71607036/194919518-f6dbd175-45f7-404a-b9ea-59ff70bb4d6a.png)
+
+![image](https://user-images.githubusercontent.com/71607036/194919615-8ac42e62-77dc-463c-b373-9b2819f56d2a.png)
+
