@@ -220,7 +220,7 @@ thumbSize = (768, 768)
 async def gen_pic_from_pic(bot, ev: CQEvent):
     uid = ev['user_id']
     gid = ev['group_id']
-    num = ev['match'].group('num')
+    num = 1
     result, msg = check_lmt(uid, num, gid)
     if result != 0:
         await bot.send(ev, msg)
