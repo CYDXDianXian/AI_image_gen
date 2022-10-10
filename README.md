@@ -5,8 +5,9 @@
 
 ## 特点
 
+- 根据tag绘制图片，根据tag+图片绘制图片
 - XP查询
-- 每日上限和频率限制
+- 每日上限和频率限制（维护组不会被限制）
 - 可设置群黑/白名单
 - 可屏蔽群人数超过一定数量的大群
 - 可自行设置屏蔽词，屏蔽某些tag后会使bot出图更加安全健康
@@ -55,6 +56,10 @@
 4. 在`hoshino/config/__bot__.py`文件中，`MODULES_ON`里添加 "AI_image_gen"
 
 5. 运行Hoshinobot
+
+6. 更新插件：
+
+   请在你的 `hoshino/modules/uma_plugin` 文件夹里，打开powershell输入 `git pull` ，运行完重启hoshinobot即可
 
 ## 使用方法
 
