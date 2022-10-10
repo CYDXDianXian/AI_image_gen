@@ -15,7 +15,7 @@ sv_help = '''
 注：+ 号不用输入
 [ai绘图/生成涩图+tag] 关键词仅支持英文，用逗号隔开
 [以图绘图/以图生图+tag+图片] 注意图片尽量长宽都在765像素以下，不然会被狠狠地压缩
-[我的xp] 查询你使用的tag频率
+[我的xp/我的XP] 查询你使用的tag频率
 加{}代表增加权重,可以加很多个,有消息称加入英语短句识别
 可选参数
 &shape=Portrait/Landscape/Square 默认Portrait竖图
@@ -327,7 +327,7 @@ def add_xp_num(uid, keyword):
     XP = XpCounter()
     XP._add_xp_num(uid, keyword)
     
-@sv.on_fullmatch(['我的XP', '我的xp'])
+@sv.on_fullmatch(('我的XP', '我的xp'))
 async def get_my_xp(bot, ev: CQEvent):
     xp_list = get_xp_list(ev.user_id)
     uid = ev.user_id
