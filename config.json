@@ -6,6 +6,12 @@
     "blacklistmode": true,
     "ban_if_group_num_over": 1000
   },
+  "default": {
+    "arrange_tags": true,
+    "add_db": true,
+    "trans": true,
+    "limit_word": true
+  },
   "NovelAI": {
     "api": "",
     "token": ""
@@ -19,13 +25,16 @@
       "nsfw",
       "genital",
       "nude",
-      "NSFW",
-      "R18",
-      "NAKED",
-      "VAGINA",
-      "PENIS",
-      "GENITAL",
-      "NUDE"
+      "&r18=1",
+      "nipple"
     ]
+  },
+  "default_tags": {
+    "tags": "miku"
+  },
+  "youdao": {
+    "youdao_api": "https://openapi.youdao.com/api",
+    "app_id": "",
+    "app_key": ""
   }
 }

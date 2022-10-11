@@ -3,16 +3,20 @@
 
 仓库地址：https://github.com/CYDXDianXian/AI_image_gen
 
-感谢群友上传的各种版本的AI绘图，这里缝合了一些实用功能进去，以后会看情况缝合更多的功能~
+感谢 [sans]() 老师、[Cath]() 老师 以及各群友上传的代码，这里主要对群友上传的各个版本代码进行了缝合
 
 ## 特点
 
-- 根据tag绘制图片，根据tag+图片绘制图片
-- XP查询
-- 每日上限和频率限制（维护组不会被限制）
-- 可设置群黑/白名单
-- 可屏蔽群人数超过一定数量的大群
-- 可自行设置屏蔽词，屏蔽某些tag后会使bot出图更加安全健康（维护组不会被限制）
+- [x] 根据tag绘制图片，根据tag+图片绘制图片
+- [x] 接入有道翻译api，可自动对中文tag进行翻译
+- [x] 本群或个人XP查询
+- [x] 本群或个人XP缝合
+- [x] 上传、查看和点赞本群图片
+- [x] 每日上限和频率限制（维护组不会被限制）
+- [x] tags整理/数据录入/中英翻译/违禁词过滤 开关控制
+- [x] 可设置群黑/白名单
+- [x] 可屏蔽群人数超过一定数量的大群
+- [x] 可自行设置屏蔽词，屏蔽某些tag后会使bot出图更加安全健康，tag会自动转为小写
 
 ## 配置方法
 
@@ -31,6 +35,10 @@
 
    - 在`token`中填写你的token
 
+   - 在`app_id`中填写自己的[有道智云](https://ai.youdao.com/)应用id
+
+   - 在`app_key`中填写自己的[有道智云](https://ai.youdao.com/)应用秘钥
+
    ```python
    {
        "base": {
@@ -38,15 +46,29 @@
            "freq_limit": 60,  # 频率限制
            "whitelistmode": False,  # 白名单模式开关
            "blacklistmode": True,  # 黑名单模式开关
-           "ban_if_group_num_over": 1000  # 屏蔽群人数超过1000人的群
+           "ban_if_group_num_over": 1000,  # 屏蔽群人数超过1000人的群
+       },
+       "default": {
+           "arrange_tags": True, # 是否开启tags整理
+           "add_db": True, # 是否开启数据录入
+           "trans": True, # 是否开启翻译
+           "limit_word": True # 是否开启违禁词过滤
        },
        "NovelAI": {
            "api": "",  # 设置api，例如："http://11.222.333.444:5555/"
            "token": ""  # 设置你的token，例如："ADGdsvSFGsaA5S2D"，（若你的api无需使用token，留空即可）
        },
        "ban_word": {
-           "wordlist": ["r18", "naked", "vagina", "penis", "nsfw", "genital", "nude", "NSFW", "R18", "NAKED", "VAGINA", "PENIS", "GENITAL", "NUDE"]
-       }  # 屏蔽词列表
+           "wordlist": ["r18", "naked", "vagina", "penis", "nsfw", "genital", "nude", '&r18=1', 'nipple']
+       },  # 屏蔽词列表
+       "default_tags":{
+           "tags": "miku" # 如果没有指定tag的话，默认的tag
+       },
+       "youdao": {
+           "youdao_api": 'https://openapi.youdao.com/api',  # 有道api地址
+           "app_id": "",  # 自己的有道智云应用id
+           "app_key": ""  # 自己的有道智云应用秘钥
+       }
    }
    ```
 
@@ -68,20 +90,26 @@
 
 注：+ 号不用输入
 
-| 指令                                    | 说明                                                         |
-| --------------------------------------- | ------------------------------------------------------------ |
-| ai绘图/生成涩图+tag                     | 关键词仅支持英文，用逗号隔开                                 |
-| 以图绘图/以图生图+tag+图片              | 注意图片尽量长宽都在765像素以下，不然会被狠狠地压缩          |
-| 我的XP/我的xp                           | 查询你使用的tag频率                                          |
-| {}                                      | 关键词上加{}代表增加权重,可以加很多个                        |
-| []                                      | 关键词上加[]代表减少权重,可以加很多个                        |
-| **可选参数**                            |                                                              |
-| &shape=Portrait/Landscape/Square        | 默认Portrait竖图。Landscape(横图)，Square(方图)              |
-| &scale=11                               | 默认11，赋予AI自由度的参数，越高表示越遵守tags，一般保持11左右不变 |
-| &seed=1111111                           | 随机种子。在其他条件不变的情况下，相同的种子代表生成相同的图 |
-| **以下为维护组使用**                    |                                                              |
-| 绘图 黑/白名单 新增/添加/移除/删除 群号 | 修改黑白名单(空格不能漏)                                     |
-| 黑名单列表/白名单列表                   | 查询黑白名单列表                                             |
+| 指令                                                         | 说明                                                         |
+| ------------------------------------------------------------ | ------------------------------------------------------------ |
+| ai绘图/生成涩图+tag                                          | 关键词仅支持英文，用逗号隔开                                 |
+| 以图绘图/以图生图+tag+图片                                   | 注意图片尽量长宽都在765像素以下，不然会被狠狠地压缩          |
+| 本群/个人XP排行                                              | 本群/个人的tag使用频率                                       |
+| 本群/个人XP缝合                                              | 缝合tags进行绘图                                             |
+| 上传pic/上传图片                                             | 务必携带seed/scale/tags等参数                                |
+| 查看本群pic/查看本群图片                                     | 查看已上传的图片                                             |
+| 点赞pic/点赞图片+数字ID                                      | 对已上传图片进行点赞                                         |
+| {}                                                           | 关键词上加{}代表增加权重,可以加很多个                        |
+| []                                                           | 关键词上加[]代表减少权重,可以加很多个                        |
+| **可选参数**                                                 |                                                              |
+| &shape=Portrait/Landscape/Square                             | 默认Portrait竖图。Landscape(横图)，Square(方图)              |
+| &scale=11                                                    | 默认11，赋予AI自由度的参数，越高表示越遵守tags，一般保持11左右不变 |
+| &seed=1111111                                                | 随机种子。在其他条件不变的情况下，相同的种子代表生成相同的图 |
+| **以下为维护组使用**（空格不能漏）                           |                                                              |
+| 绘图 状态 [群号]                                             | 查看本群或指定群的模块开启状态                               |
+| 绘图 设置 tags整理/数据录入/中英翻译/违禁词过滤 启用/关闭 [群号] | 启用/关闭本群或指定群的对应模块                              |
+| 绘图 黑/白名单 新增/添加/移除/删除 群号                      | 修改黑白名单                                                 |
+| 黑名单列表/白名单列表                                        | 查询黑白名单列表                                             |
 
 参数用法示例：
 
@@ -89,9 +117,13 @@
 
 ![image](https://user-images.githubusercontent.com/71607036/195134222-6e7c68d4-62c0-4870-89ed-38ae5d733aa1.png)
 
-## 其他说明
+上传图片示例：
+
+## API说明
 
 - 目前API都为私人搭建，你需要一个拥有有效付费计划的 [NovelAI](https://novelai.net/) 账号，本插件只使用 [NovelAI](https://novelai.net/) 搭建的API所提供的接口。付费计划请自行前往 [NovelAI](https://novelai.net/) 了解。(别问怎么搭建API，我很菜，我也不会QAQ，其他地方应该有教程的吧！）
+- 目前可用的API：[路路佬的API](http://91.216.169.75:5010/token)
+- 有道翻译API：请访问[有道智云](https://ai.youdao.com/)注册账号，在控制台中以API接入方式创建一个文本翻译应用，查看应用即可获取有道应用ID和应用秘钥，然后将其填写至配置文件即可使用有道翻译服务
 
 ## 使用效果预览
 
@@ -101,3 +133,12 @@
 
 ![image](https://user-images.githubusercontent.com/71607036/194919615-8ac42e62-77dc-463c-b373-9b2819f56d2a.png)
 
+## 鸣谢
+
+[go-cqhttp](https://github.com/Mrs4s/go-cqhttp)
+[HoshinoBot](https://github.com/Ice-Cirno/HoshinoBot)
+[setu_renew](https://github.com/pcrbot/setu_renew)
+
+## 友情链接
+
+[AI_image_gen](https://github.com/CYDXDianXian/AI_image_gen)

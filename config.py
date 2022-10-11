@@ -1,17 +1,19 @@
 import json
 import os
-
+import traceback
 import nonebot
-
 import hoshino
 
 cfgpath = os.path.join(os.path.dirname(__file__), 'config.json')
 grouplistpath = os.path.join(os.path.dirname(__file__), 'grouplist.json')
+groupconfigpath = os.path.join(os.path.dirname(__file__), 'groupconfig.json')
+group_config = {}
 config = {}
 invaild_key_dict = {}
 group_list = {}
 config = json.load(open(cfgpath, 'r', encoding='utf8'))
 group_list = json.load(open(grouplistpath, 'r', encoding='utf8'))
+group_config = json.load(open(groupconfigpath, 'r', encoding='utf8'))
 
 
 
@@ -19,12 +21,11 @@ def get_config(key, sub_key):
 	if key in config and sub_key in config[key]:
 		return config[key][sub_key]
 	return None
-
+	
 def get_grouplist(key):
 	if key in group_list:
 		return group_list[key]
 	return None
-
 
 def group_list_check(gid):
 	"""
@@ -118,8 +119,32 @@ def set_group_list(gid, _list, mode):
 		return 403, failed_gids
 
 
-# def get_api_num():
-# 	return int(len(config["lolicon"]["apikey"]))
+def get_api_num():
+	return int(len(config["lolicon"]["apikey"]))
+
+
+def get_group_config(group_id, key):
+	group_id = str(group_id)
+	if group_id not in group_config:
+		return config['default'][key]
+	if key in group_config[group_id]:
+		return group_config[group_id][key]
+	else:
+		return None
+
+
+def set_group_config(group_id, key, value):
+	group_id = str(group_id)
+	if group_id not in group_config:
+		group_config[group_id] = {}
+		for k, v in config['default'].items():
+			group_config[group_id][k] = v
+	group_config[group_id][key] = value
+	try:
+		with open(groupconfigpath, 'w', encoding='utf8') as f:
+			json.dump(group_config, f, ensure_ascii=False, indent=2)
+	except:
+		traceback.print_exc()
 
 
 async def get_group_info(group_ids=0, info_type='member_count'):
