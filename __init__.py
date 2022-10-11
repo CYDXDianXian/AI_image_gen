@@ -37,6 +37,7 @@ sv = Service(
     help_=sv_help  # 帮助说明
 )
 
+# 以下参数仅用作配置说明，请不要在这里修改，请在config.json文件中修改配置才能生效！！！
 config_default = {
     "base": {
         "daily_max": 20,  # 每日上限次数
