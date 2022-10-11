@@ -85,9 +85,9 @@
 
 参数用法示例：
 
-![image](https://user-images.githubusercontent.com/71607036/195009618-c273cc8d-b567-4276-b280-53e7f0f377e9.png)
+![image](https://user-images.githubusercontent.com/71607036/195133884-d4c2a8cf-3853-4bce-b1e4-d2229f51f193.png)
 
-![image](https://user-images.githubusercontent.com/71607036/195010112-346b3060-2933-4b4d-9565-6facce5dd708.png)
+![image](https://user-images.githubusercontent.com/71607036/195134222-6e7c68d4-62c0-4870-89ed-38ae5d733aa1.png)
 
 ## 其他说明
 
