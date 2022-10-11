@@ -38,7 +38,7 @@
            "freq_limit": 60,  # 频率限制
            "whitelistmode": False,  # 白名单模式开关
            "blacklistmode": True,  # 黑名单模式开关
-           "ban_if_group_num_over": 1000  # 屏蔽群人数过1000人的群
+           "ban_if_group_num_over": 1000  # 屏蔽群人数超过1000人的群
        },
        "NovelAI": {
            "api": "",  # 设置api，例如："11.222.333.444:5555"
