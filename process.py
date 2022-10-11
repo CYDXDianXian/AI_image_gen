@@ -9,7 +9,7 @@ from .youdao import tag_trans
 from .config import get_config, get_group_config
 
 
-def process_tags(gid,uid,tags):
+def process_tags(gid,uid,tags,add_db=True,arrange_tags=True):
     '''
     录入数据库，翻译，过滤屏蔽词
     '''
