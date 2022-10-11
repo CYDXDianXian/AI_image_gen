@@ -41,7 +41,7 @@
            "ban_if_group_num_over": 1000  # 屏蔽群人数超过1000人的群
        },
        "NovelAI": {
-           "api": "",  # 设置api，例如："11.222.333.444:5555"
+           "api": "",  # 设置api，例如："http://11.222.333.444:5555/"
            "token": ""  # 设置你的token，例如："ADGdsvSFGsaA5S2D"
        },
        "ban_word": {

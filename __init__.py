@@ -46,7 +46,7 @@ config_default = {
         "ban_if_group_num_over": 1000  # 屏蔽群人数超过1000人的群
     },
     "NovelAI": {
-        "api": "",  # 设置api，例如："11.222.333.444:5555"
+        "api": "",  # 设置api，例如："http://11.222.333.444:5555/"
         "token": ""  # 设置你的token，例如："ADGdsvSFGsaA5S2D"
     },
     "ban_word": {
@@ -113,8 +113,8 @@ def check_lmt(uid, num, gid):
 
 
 # 设置API
-word2img_url = f"http://{get_config('NovelAI', 'api')}/got_image?tags="
-img2img_url = f"http://{get_config('NovelAI', 'api')}/got_image2image"
+word2img_url = f"{get_config('NovelAI', 'api')}got_image?tags="
+img2img_url = f"{get_config('NovelAI', 'api')}got_image2image"
 token = f"&token={get_config('NovelAI', 'token')}"
 
 # 加载屏蔽词
