@@ -2,12 +2,16 @@ from base64 import b64encode
 import base64
 from io import BytesIO
 import json
+from pathlib import Path
 import re
 from PIL import Image, ImageDraw,ImageFont
 from .import limit, db
 from .youdao import tag_trans
-from .config import get_config, get_group_config
+from .config import get_group_config
 
+
+path_ = Path(__file__).parent # 获取文件所在目录的绝对路径
+font_path = str(path_ / 'fonts' / 'SourceHanSansCN-Medium.otf') # 字体路径。Path是路径对象，必须转为str之后ImageFont才能读取
 
 def process_tags(gid,uid,tags,add_db=True,arrange_tags=True):
     '''
@@ -90,7 +94,7 @@ def img_make(msglist):
         region = Image.open(image_path)
         region = region.convert("RGB")
         region = region.resize((int(region.width/2),int(region.height/2)))
-        font = ImageFont.truetype('C:\\WINDOWS\\Fonts\\simsun.ttc', 36)  # 设置字体和大小
+        font = ImageFont.truetype(font_path, 36)  # 设置字体和大小
         draw = ImageDraw.Draw(target)
         if i<4:
             target.paste(region,(80*(i+1)+384*i,50))
