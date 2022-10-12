@@ -153,3 +153,4 @@ cython_debug/
 grouplist.json
 SaveImage
 groupconfig.json
+config.json

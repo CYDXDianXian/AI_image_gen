@@ -30,7 +30,7 @@
    git https://github.com/CYDXDianXian/AI_image_gen.git
    ```
 
-2. 更改配置文件`config.json`：
+2. 将本插件目录下的配置文件模板 `config.template.json` 复制并重命名为 `config.json` ,并进行如下设置：
 
    > **Warning** \
    > 只有**在`config.json`中更改配置**才会生效，**请不要修改`__init__.py`中**的默认配置信息
@@ -62,9 +62,6 @@
            "api": "",  # 设置api，例如："http://11.222.333.444:5555/"
            "token": ""  # 设置你的token，例如："ADGdsvSFGsaA5S2D"，（若你的api无需使用token，留空即可）
        },
-       "ban_word": {
-           "wordlist": ["r18", "naked", "vagina", "penis", "nsfw", "genital", "nude", '&r18=1', 'nipple']
-       },  # 屏蔽词列表
        "default_tags":{
            "tags": "miku" # 如果没有指定tag的话，默认的tag
        },
@@ -72,7 +69,10 @@
            "youdao_api": 'https://openapi.youdao.com/api',  # 有道api地址
            "app_id": "",  # 自己的有道智云应用id
            "app_key": ""  # 自己的有道智云应用秘钥
-       }
+       },
+       "ban_word": {
+           "wordlist": ["r18", "naked", "vagina", "penis", "nsfw", "genital", "nude", '&r18=1', 'nipple']
+       } # 屏蔽词列表
    }
    ```
 
@@ -153,4 +153,4 @@
 
 ## 友情链接
 
-[AI_image_gen](https://github.com/CYDXDianXian/AI_image_gen)
+[ai绘图安全版](https://github.com/jiyemengmei/AI_Draw_safemode)
