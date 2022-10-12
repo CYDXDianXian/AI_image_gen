@@ -24,10 +24,14 @@
     "default_tags": {
         "tags": "miku"
     },
+    "default_tagss": {
+        "tags": "miku"
+    },
     "ban_word": {
         "wordlist": [
             "r18",
             "naked",
+            "nakeda",
             "vagina",
             "penis",
             "nsfw",
