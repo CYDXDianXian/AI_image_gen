@@ -16,6 +16,14 @@
     "api": "",
     "token": ""
   },
+  "default_tags": {
+    "tags": "miku"
+  },
+  "youdao": {
+    "youdao_api": "https://openapi.youdao.com/api",
+    "app_id": "",
+    "app_key": ""
+  },
   "ban_word": {
     "wordlist": [
       "r18",
@@ -28,13 +36,5 @@
       "&r18=1",
       "nipple"
     ]
-  },
-  "default_tags": {
-    "tags": "miku"
-  },
-  "youdao": {
-    "youdao_api": "https://openapi.youdao.com/api",
-    "app_id": "",
-    "app_key": ""
   }
 }
