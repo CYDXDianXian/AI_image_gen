@@ -367,7 +367,7 @@ async def gen_pic_from_pic(bot, ev: CQEvent):
         return
 
     
-@sv.on_fullmatch(['本群XP排行'])
+@sv.on_fullmatch(('本群XP排行', '本群xp排行'))
 async def get_group_xp(bot, ev):
     gid = ev.group_id
     xp_list = db.get_xp_list_group(gid)
@@ -380,7 +380,7 @@ async def get_group_xp(bot, ev):
         msg += '暂无本群的XP信息'
     await bot.send(ev, msg)
 
-@sv.on_fullmatch(['个人XP排行'])
+@sv.on_fullmatch(('个人XP排行', '个人xp排行'))
 async def get_personal_xp(bot, ev):
     gid = ev.group_id
     uid = ev.user_id
@@ -394,7 +394,7 @@ async def get_personal_xp(bot, ev):
         msg += '暂无你在本群的XP信息'
     await bot.send(ev, msg)
 
-@sv.on_fullmatch(['本群XP缝合'])
+@sv.on_fullmatch(('本群XP缝合', '本群xp缝合'))
 async def get_group_xp_pic(bot, ev):
     gid = ev.group_id
     uid = ev.user_id
@@ -438,7 +438,7 @@ async def get_group_xp_pic(bot, ev):
     else:
         msg += '暂无本群的XP信息'
 
-@sv.on_fullmatch(['个人XP缝合'])
+@sv.on_fullmatch(('个人XP缝合', '个人xp缝合'))
 async def get_personal_xp_pic(bot, ev):
     gid = ev.group_id
     uid = ev.user_id
