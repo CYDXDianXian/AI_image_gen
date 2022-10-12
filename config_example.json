@@ -16,13 +16,13 @@
         "api": "",
         "token": ""
     },
-    "default_tags": {
-        "tags": "miku"
-    },
     "youdao": {
         "youdao_api": "https://openapi.youdao.com/api",
         "app_id": "",
         "app_key": ""
+    },
+    "default_tags": {
+        "tags": "miku"
     },
     "ban_word": {
         "wordlist": [

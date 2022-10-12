@@ -62,13 +62,13 @@
            "api": "",  # 设置api，例如："http://11.222.333.444:5555/"
            "token": ""  # 设置你的token，例如："ADGdsvSFGsaA5S2D"，（若你的api无需使用token，留空即可）
        },
-       "default_tags":{
-           "tags": "miku" # 如果没有指定tag的话，默认的tag
-       },
        "youdao": {
            "youdao_api": 'https://openapi.youdao.com/api',  # 有道api地址
            "app_id": "",  # 自己的有道智云应用id
            "app_key": ""  # 自己的有道智云应用秘钥
+       },
+       "default_tags":{
+           "tags": "miku" # 如果没有指定tag的话，默认的tag
        },
        "ban_word": {
            "wordlist": ["r18", "naked", "vagina", "penis", "nsfw", "genital", "nude", '&r18=1', 'nipple']
