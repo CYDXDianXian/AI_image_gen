@@ -5,6 +5,8 @@
 
 感谢 [sans]() 老师、[Cath]() 老师 以及各群友上传的代码，这里主要对群友上传的各个版本代码进行了缝合
 
+**注意！！！本次更新后旧配置文件`config.json`与新版无法兼容，请备份好个人api和token数据后删除`config.json`文件，再使用`git pull`命令从仓库拉取更新**
+
 ## 特点
 
 - [x] 根据tag绘制图片，根据tag+图片绘制图片
@@ -49,8 +51,8 @@
            "ban_if_group_num_over": 1000,  # 屏蔽群人数超过1000人的群
        },
        "default": {
-           "arrange_tags": True, # 是否开启tags整理
-           "add_db": True, # 是否开启数据录入
+           "arrange_tags": True, # 是否开启tags整理（默认开启，暂时无法关闭）
+           "add_db": True, # 是否开启数据录入（默认开启，暂时无法关闭）
            "trans": True, # 是否开启翻译
            "limit_word": True # 是否开启违禁词过滤
        },
@@ -117,8 +119,6 @@
 
 ![image](https://user-images.githubusercontent.com/71607036/195134222-6e7c68d4-62c0-4870-89ed-38ae5d733aa1.png)
 
-上传图片示例：
-
 ## API说明
 
 - 目前API都为私人搭建，你需要一个拥有有效付费计划的 [NovelAI](https://novelai.net/) 账号，本插件只使用 [NovelAI](https://novelai.net/) 搭建的API所提供的接口。付费计划请自行前往 [NovelAI](https://novelai.net/) 了解。(别问怎么搭建API，我很菜，我也不会QAQ，其他地方应该有教程的吧！）
@@ -131,12 +131,22 @@
 
 ![image](https://user-images.githubusercontent.com/71607036/194919518-f6dbd175-45f7-404a-b9ea-59ff70bb4d6a.png)
 
-![image](https://user-images.githubusercontent.com/71607036/194919615-8ac42e62-77dc-463c-b373-9b2819f56d2a.png)
+![image](https://user-images.githubusercontent.com/71607036/195219826-0ae82840-e6fa-4a65-aadd-361d1e3ca583.png)
+
+![image](https://user-images.githubusercontent.com/71607036/195219875-0b4d5c02-07f3-4b2e-95a5-e3abb1810c1b.png)
+
+![image](https://user-images.githubusercontent.com/71607036/195219903-e22d4c3b-1357-4da1-bb7e-8441fb575db4.png)
+
+![image](https://user-images.githubusercontent.com/71607036/195219944-59930139-46d6-474e-8262-de4711fffcee.png)
+
+![image](https://user-images.githubusercontent.com/71607036/195219976-a4a9d82b-a1d5-4ff9-912a-9ea808d90a75.png)
 
 ## 鸣谢
 
 [go-cqhttp](https://github.com/Mrs4s/go-cqhttp)
+
 [HoshinoBot](https://github.com/Ice-Cirno/HoshinoBot)
+
 [setu_renew](https://github.com/pcrbot/setu_renew)
 
 ## 友情链接
