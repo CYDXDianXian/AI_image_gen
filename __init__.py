@@ -58,8 +58,8 @@ config_default = {
         "ban_if_group_num_over": 1000,  # 屏蔽群人数超过1000人的群
     },
     "default": {
-        "arrange_tags": True, # 是否开启tags整理
-        "add_db": True, # 是否开启数据录入
+        "arrange_tags": True, # 是否开启tags整理（默认开启，暂时无法关闭）
+        "add_db": True, # 是否开启数据录入（默认开启，暂时无法关闭）
         "trans": True, # 是否开启翻译
         "limit_word": True # 是否开启违禁词过滤
     },
@@ -414,7 +414,7 @@ async def get_group_xp_pic(bot, ev):
             msg.append(keyword)
         xp_tags = (',').join(str(x) for x in msg)
         tags = (',').join(str(x) for x in (re.findall(r"'(.+?)'",xp_tags)))
-        tags,error_msg,tags_guolu=process_tags(gid,uid,tags,add_db=0,arrange_tags=0) #tags处理过程
+        tags,error_msg,tags_guolu=process_tags(gid,uid,tags,add_db=True,arrange_tags=True) #tags处理过程
         if len(error_msg):
             await bot.send(ev, f"已报错：{error_msg}", at_sender=True)
         if len(tags_guolu):
@@ -458,7 +458,7 @@ async def get_personal_xp_pic(bot, ev):
             msg.append(keyword)
         xp_tags = (',').join(str(x) for x in msg)
         tags = (',').join(str(x) for x in (re.findall(r"'(.+?)'",xp_tags)))
-        tags,error_msg,tags_guolu=process_tags(gid,uid,tags,add_db=0,arrange_tags=0) #tags处理过程
+        tags,error_msg,tags_guolu=process_tags(gid,uid,tags,add_db=True,arrange_tags=True) #tags处理过程
         if len(error_msg):
             await bot.send(ev, f"已报错：{error_msg}", at_sender=True)
         if len(tags_guolu):

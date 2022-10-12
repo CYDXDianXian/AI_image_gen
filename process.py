@@ -16,10 +16,10 @@ def process_tags(gid,uid,tags,add_db=True,arrange_tags=True):
     error_msg ="" #报错信息
     tags_guolu="" #过滤词信息
     
-    add_db = get_group_config(gid, 'add_db')
+    # add_db = get_group_config(gid, 'add_db') # 有bug，先保持开启不变
     trans = get_group_config(gid, 'trans')
     limit_word = get_group_config(gid, 'limit_word')
-    arrange_tags = get_group_config(gid, 'arrange_tags')
+    # arrange_tags = get_group_config(gid, 'arrange_tags')  # 有bug，先保持开启不变
 
     if add_db == True:
         try:
