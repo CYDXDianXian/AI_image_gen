@@ -5,7 +5,10 @@
 
 感谢 [sans]() 老师、[Cath]() 老师 以及各群友上传的代码，这里主要对群友上传的各个版本代码进行了缝合
 
-**注意！！！本次更新后旧配置文件`config.json`与新版无法兼容，请备份好个人api和token数据后删除`config.json`文件，再使用`git pull`命令从仓库拉取更新**
+- **注意！！！本次更新后旧配置文件`config.json`与新版无法兼容，请备份好个人api和token数据后删除`config.json`文件，再使用`git pull`命令从仓库拉取更新**
+
+- ![image](https://user-images.githubusercontent.com/71607036/195259891-f4fa4d8b-fd9d-4bad-8718-d933bdf5c231.png)
+若更新后出现该报错，是缺少pyahocorasick依赖所致，使用`pip install -r requirements.txt`命令重新安装一下依赖即可解决。https://github.com/CYDXDianXian/AI_image_gen/issues/3#issuecomment-1275616669
 
 ## 特点
 
