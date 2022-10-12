@@ -1,4 +1,4 @@
-import requests
+from hoshino import aiorequests
 import uuid
 import hashlib
 import time
@@ -18,7 +18,7 @@ def isContainChinese(s):
     return False
 
 
-def youdaoTranslate(translate_text):
+async def youdaoTranslate(translate_text):
     '''
     :param translate_text: 待翻译的句子
     :param flag: 1:原句子翻译成英文；0:原句子翻译成中文
@@ -53,11 +53,12 @@ def youdaoTranslate(translate_text):
     data['from'] = "zh-CHS"  # 译文语种
     data['to'] = "en"  # 译文语种
 
-    r = requests.get(youdao_url, params=data).json()  # 获取返回的json()内容
+    r = await aiorequests.get(youdao_url, params=data)
+    j = await r.json()
     # print("翻译后的结果：" + r["translation"][0])  # 获取翻译内容
-    return r["translation"][0]
+    return j["translation"][0]
 
-def tag_trans(tags):
+async def tag_trans(tags):
     if(isContainChinese(tags)):
-        tags=youdaoTranslate(tags)
+        tags = await youdaoTranslate(tags)
     return tags

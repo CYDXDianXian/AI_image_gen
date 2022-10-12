@@ -72,7 +72,7 @@
            "tags": "miku" # 如果没有指定tag的话，默认的tag
        },
        "ban_word": {
-           "wordlist": ["r18", "naked", "vagina", "penis", "nsfw", "genital", "nude", '&r18=1', 'nipple']
+           "wordlist": ["r18", "naked", "vagina", "penis", "nsfw", "genital", "nude", "&r18=1", "nipple"]
        } # 屏蔽词列表
    }
    ```

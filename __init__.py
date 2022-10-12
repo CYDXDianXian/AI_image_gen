@@ -1,7 +1,6 @@
 import os
 from pathlib import Path
 import traceback
-import requests
 import hoshino
 from . import db
 from hoshino.typing import CQEvent
@@ -465,7 +464,7 @@ async def gen_pic(bot, ev: CQEvent):
         return
 
     tags = ev.message.extract_plain_text()
-    tags,error_msg,tags_guolu=process_tags(gid,uid,tags) # tags处理过程
+    tags,error_msg,tags_guolu=await process_tags(gid,uid,tags) # tags处理过程
     if len(error_msg):
         await bot.send(ev, f"已报错：{error_msg}", at_sender=True)
     if len(tags_guolu):
@@ -506,7 +505,7 @@ async def gen_pic_from_pic(bot, ev: CQEvent):
         return
 
     tags = ev.message.extract_plain_text()
-    tags,error_msg,tags_guolu=process_tags(gid,uid,tags) #tags处理过程
+    tags,error_msg,tags_guolu=await process_tags(gid,uid,tags) #tags处理过程
     if len(error_msg):
         await bot.send(ev, f"已报错：{error_msg}", at_sender=True)
     if len(tags_guolu):
@@ -522,7 +521,7 @@ async def gen_pic_from_pic(bot, ev: CQEvent):
             url = ev.message[1]["data"]["url"]
         await bot.send(ev, f"正在生成，请稍后...\n(今日剩余{get_config('base', 'daily_max') - tlmt.get_num(uid)}次)", at_sender=True)
         post_url = img2img_url + (f"?tags={tags}" if tags != "" else "") + token
-        image = Image.open(io.BytesIO(requests.get(url, timeout=20).content))
+        image = Image.open(io.BytesIO(await aiorequests.get(url, timeout=20).content))
         image = image.convert('RGB')
         if (image.size[0] > image.size[1]):
             image_shape = "Landscape"
@@ -592,7 +591,7 @@ async def get_group_xp_pic(bot, ev):
             msg.append(keyword)
         xp_tags = (',').join(str(x) for x in msg)
         tags = (',').join(str(x) for x in (re.findall(r"'(.+?)'",xp_tags)))
-        tags,error_msg,tags_guolu=process_tags(gid,uid,tags,add_db=True,arrange_tags=True) #tags处理过程
+        tags,error_msg,tags_guolu=await process_tags(gid,uid,tags,add_db=True,arrange_tags=True) #tags处理过程
         if len(error_msg):
             await bot.send(ev, f"已报错：{error_msg}", at_sender=True)
         if len(tags_guolu):
@@ -636,7 +635,7 @@ async def get_personal_xp_pic(bot, ev):
             msg.append(keyword)
         xp_tags = (',').join(str(x) for x in msg)
         tags = (',').join(str(x) for x in (re.findall(r"'(.+?)'",xp_tags)))
-        tags,error_msg,tags_guolu=process_tags(gid,uid,tags,add_db=True,arrange_tags=True) #tags处理过程
+        tags,error_msg,tags_guolu=await process_tags(gid,uid,tags,add_db=True,arrange_tags=True) #tags处理过程
         if len(error_msg):
             await bot.send(ev, f"已报错：{error_msg}", at_sender=True)
         if len(tags_guolu):

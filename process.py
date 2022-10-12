@@ -13,7 +13,7 @@ from .config import get_group_config
 path_ = Path(__file__).parent # 获取文件所在目录的绝对路径
 font_path = str(path_ / 'fonts' / 'SourceHanSansCN-Medium.otf') # 字体路径。Path是路径对象，必须转为str之后ImageFont才能读取
 
-def process_tags(gid,uid,tags,add_db=True,arrange_tags=True):
+async def process_tags(gid,uid,tags,add_db=True,arrange_tags=True):
     '''
     录入数据库，翻译，过滤屏蔽词
     '''
@@ -38,7 +38,7 @@ def process_tags(gid,uid,tags,add_db=True,arrange_tags=True):
     if trans == True:
         try:
             msg = re.split("([&])", tags ,1)
-            msg[0] = tag_trans(msg[0])#有道翻译
+            msg[0] = await tag_trans(msg[0])#有道翻译
             tags = "".join(msg)
         except Exception as e:
             error_msg = "翻译失败"
