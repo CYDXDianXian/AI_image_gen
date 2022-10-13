@@ -53,10 +53,9 @@ async def youdaoTranslate(translate_text):
     data['from'] = "zh-CHS"  # 译文语种
     data['to'] = "en"  # 译文语种
 
-    r = await aiorequests.get(youdao_url, params=data)
-    j = await r.json()
+    r = await (await aiorequests.get(youdao_url, params=data)).json()
     # print("翻译后的结果：" + r["translation"][0])  # 获取翻译内容
-    return j["translation"][0]
+    return r["translation"][0]
 
 async def tag_trans(tags):
     if(isContainChinese(tags)):
