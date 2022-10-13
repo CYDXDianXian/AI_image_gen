@@ -521,7 +521,7 @@ async def gen_pic_from_pic(bot, ev: CQEvent):
             url = ev.message[1]["data"]["url"]
         await bot.send(ev, f"正在生成，请稍后...\n(今日剩余{get_config('base', 'daily_max') - tlmt.get_num(uid)}次)", at_sender=True)
         post_url = img2img_url + (f"?tags={tags}" if tags != "" else "") + token
-        image = Image.open(io.BytesIO(await aiorequests.get(url, timeout=20).content))
+        image = Image.open(io.BytesIO(await (await aiorequests.get(url, timeout=20)).content))
         image = image.convert('RGB')
         if (image.size[0] > image.size[1]):
             image_shape = "Landscape"
