@@ -119,8 +119,8 @@ def set_group_list(gid, _list, mode):
 		return 403, failed_gids
 
 
-def get_api_num():
-	return int(len(config["lolicon"]["apikey"]))
+# def get_api_num():
+# 	return int(len(config["lolicon"]["apikey"]))
 
 
 def get_group_config(group_id, key):

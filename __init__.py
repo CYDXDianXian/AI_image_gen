@@ -18,23 +18,29 @@ sv_help = '''
 注：+ 号不用输入
 [ai绘图/生成涩图+tag] 关键词仅支持英文，用逗号隔开
 [以图绘图/以图生图+tag+图片] 注意图片尽量长宽都在765像素以下，不然会被狠狠地压缩
+[上传pic/上传图片] 务必携带seed/scale/tags等参数
+[查看配方/查看tag+图片ID] 查看已上传图片的配方
+[快捷绘图+图片ID] 使用已上传图片的配方进行快捷绘图
+[查看个人pic/查看个人图片+页码] 查看个人已上传的图片
+[查看本群pic/查看本群图片+页码] 查看本群已上传的图片
+[查看全部pic/查看全部图片+页码] 查看全部群已上传的图片
+[点赞pic/点赞图片+图片ID] 对已上传图片进行点赞
+[删除pic/删除图片+图片ID] 删除对应图片和配方(仅限维护组使用)
 [本群/个人XP排行] 本群/个人的tag使用频率
 [本群/个人XP缝合] 缝合tags进行绘图
-[上传pic/上传图片] 务必携带seed/scale/tags等参数
-[查看本群pic/查看本群图片] 查看已上传的图片
-[点赞pic/点赞图片+数字ID] 对已上传图片进行点赞
-
-加{}代表增加权重,可以加很多个,有消息称加入英语短句识别
-可选参数：
-&shape=Portrait/Landscape/Square 默认Portrait竖图。Landscape(横图)，Square(方图)
-&scale=11 默认11，赋予AI自由度的参数，越高表示越遵守tags，一般保持11左右不变
-&seed=1111111 随机种子。在其他条件不变的情况下，相同的种子代表生成相同的图
 
 以下为维护组使用(空格不能漏)：
 [绘图 状态 <群号>] 查看本群或指定群的模块开启状态
 [绘图 设置 tags整理/数据录入/中英翻译/违禁词过滤 启用/关闭] 启用或关闭对应模块
 [绘图 黑/白名单 新增/添加/移除/删除 群号] 修改黑白名单
 [黑名单列表/白名单列表] 查询黑白名单列表
+
+参数使用说明：
+加{}代表增加权重,可以加很多个,有消息称加入英语短句识别
+可选参数：
+&shape=Portrait/Landscape/Square 默认Portrait竖图。Landscape(横图)，Square(方图)
+&scale=11 默认11，赋予AI自由度的参数，越高表示越遵守tags，一般保持11左右不变
+&seed=1111111 随机种子。在其他条件不变的情况下，相同的种子代表生成相同的图
 '''.strip()
 
 sv = Service(
@@ -463,7 +469,7 @@ async def gen_pic(bot, ev: CQEvent):
         await bot.send(ev, msg)
         return
 
-    tags = ev.message.extract_plain_text()
+    tags = ev.message.extract_plain_text().strip()
     tags,error_msg,tags_guolu=await process_tags(gid,uid,tags) # tags处理过程
     if len(error_msg):
         await bot.send(ev, f"已报错：{error_msg}", at_sender=True)
@@ -505,7 +511,7 @@ async def gen_pic_from_pic(bot, ev: CQEvent):
         await bot.send(ev, msg)
         return
 
-    tags = ev.message.extract_plain_text()
+    tags = ev.message.extract_plain_text().strip()
     tags,error_msg,tags_guolu=await process_tags(gid,uid,tags) #tags处理过程
     if len(error_msg):
         await bot.send(ev, f"已报错：{error_msg}", at_sender=True)
@@ -690,9 +696,9 @@ async def upload_header(bot, ev):
         traceback.print_exc()
         await bot.finish(ev, '保存图片出错', at_sender=True)
     try:
-        seed=(str(ev.message.extract_plain_text()).split(f"scale:")[0]).split('seed:')[1].strip()
-        scale=(str(ev.message.extract_plain_text()).split(f"tags:")[0]).split('scale:')[1].strip()
-        tags=(str(ev.message.extract_plain_text()).split(f"tags:")[1])
+        seed=(str(ev.message.extract_plain_text().strip()).split(f"scale:")[0]).split('seed:')[1].strip()
+        scale=(str(ev.message.extract_plain_text().strip()).split(f"tags:")[0]).split('scale:')[1].strip()
+        tags=(str(ev.message.extract_plain_text().strip()).split(f"tags:")[1])
         pic_msg = tags + f"&seed={seed}" + f"&scale={scale}"
     except:
         await bot.finish(ev, '格式出错', at_sender=True)
@@ -719,7 +725,7 @@ async def check_personal_pic(bot, ev):
     resultmes = img_make(msglist,page)
     await bot.send(ev, resultmes, at_sender=True)
 
-@sv.on_fullmatch(('查看本群pic', '查看本群图片'))
+@sv.on_prefix(('查看本群pic', '查看本群图片'))
 async def check_group_pic(bot, ev):
     gid = ev.group_id
     uid = ev.user_id
@@ -753,24 +759,34 @@ async def check_all_pic(bot, ev):
 async def img_thumb(bot, ev):
     id = ev.message.extract_plain_text().strip()
     if not id.isdigit() and '*' not in id:
-        await bot.finish(ev, '图片ID???')
+        await bot.send(ev, '图片ID呢???')
+        return
     msg = db.add_pic_thumb(id)
     await bot.send(ev, msg, at_sender=True)
 
 @sv.on_prefix(("删除pic", "删除图片"))
 async def del_img(bot, ev):
-    gid = ev.group_id
-    uid = ev.user_id
-    if not priv.check_priv(ev,priv.SUPERUSER):
-        msg = "只有超管才能删除"
-        await bot.finish(ev, msg, at_sender=True)
-    id = ev.message.extract_plain_text().strip()
-    if not id.isdigit() and '*' not in id:
-        await bot.finish(ev, '图片ID???')
-    msg = db.del_pic(id)
-    await bot.send(ev, msg, at_sender=True)
+    try:
+        gid = ev.group_id
+        uid = ev.user_id
+        if not priv.check_priv(ev,priv.SUPERUSER):
+            msg = "只有超管才能删除"
+            await bot.finish(ev, msg, at_sender=True)
+        id = ev.message.extract_plain_text().strip()
+        if not id.isdigit() and '*' not in id:
+            await bot.send(ev, '图片ID呢???')
+            return
+        db.del_pic(id)
+        msg = f"已成功删除【{id}】号图片"
+        await bot.send(ev, msg, at_sender=True)
+    except ValueError as e:
+        await bot.send(ev, f"已报错：【{id}】号图片不存在！",at_sender=True)
+        traceback.print_exc()
+    except Exception as e:
+        await bot.send(ev, f"报错:{e}",at_sender=True)
+        traceback.print_exc()
 
-@sv.on_rex((r'^快捷绘图 ([0-9]\d*)(.*)'))
+@sv.on_rex((r'^快捷绘图\s?([0-9]\d*)\s?(.*)'))
 async def quick_img(bot, ev):
     gid = ev.group_id
     uid = ev.user_id
@@ -779,16 +795,17 @@ async def quick_img(bot, ev):
     tags = match.group(2)
 
     num = 1
-    result, msg = check_lmt(uid, num, gid) # 检查群权限与个人次数
+    result, msg_ = check_lmt(uid, num, gid) # 检查群权限与个人次数
     if result != 0:
-        await bot.send(ev, msg)
+        await bot.send(ev, msg_)
         return
+    await bot.send(ev, f"正在使用【{id}】号图片的配方进行绘图，请稍后...\n(今日剩余{get_config('base', 'daily_max') - tlmt.get_num(uid)}次)", at_sender=True)
     try:
         msg = db.get_pic_data_id(id)
         (a,b) = msg
         msg = re.sub("&seed=[0-9]\d*", "", b, count=0, flags=0)
         tags +=f",{msg}"
-        tags,error_msg,tags_guolu=process_tags(gid,uid,tags) #tags处理过程
+        tags,error_msg,tags_guolu=await process_tags(gid,uid,tags) #tags处理过程
         if len(error_msg):
             await bot.send(ev, f"已报错：{error_msg}", at_sender=True)
         if len(tags_guolu):
@@ -809,8 +826,33 @@ async def quick_img(bot, ev):
         resultmes += msg
         resultmes += f"\n tags:{tags}"
         await bot.send(ev, resultmes, at_sender=True)
+    except ValueError as e:
+        await bot.send(ev, f"已报错：【{id}】号图片不存在！",at_sender=True)
+        traceback.print_exc()
     except Exception as e:
         await bot.send(ev, f"报错:{e}",at_sender=True)
+        traceback.print_exc()
+
+@sv.on_prefix(('查看配方', '查看tag', '查看tags'))
+async def get_img_peifang(bot, ev: CQEvent):
+    try:
+        id = ev.message.extract_plain_text().strip()
+        if not id.isdigit() and '*' not in id:
+            await bot.send(ev, '图片ID呢???没ID怎么查???')
+            return
+        msg = db.get_pic_data_id(id)
+        (a,b) = msg
+        msg = re.sub("&seed=[0-9]\d*", "", b, count=0, flags=0)
+        tags = f"{msg}"
+        resultmes = f"【{id}】号图片的配方如下:\n{tags}"
+        await bot.send(ev, resultmes, at_sender=True)
+    except ValueError as e:
+        await bot.send(ev, f"已报错：【{id}】号图片不存在！",at_sender=True)
+        traceback.print_exc()
+    except Exception as e:
+        await bot.send(ev, f"报错:{e}",at_sender=True)
+        traceback.print_exc()
+
 
 @sv.scheduled_job('cron', hour='2', minute='36')
 async def set_ban_list():

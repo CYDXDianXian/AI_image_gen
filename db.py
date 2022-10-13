@@ -1,4 +1,3 @@
-import base64
 import os
 import sqlite3
 
@@ -257,8 +256,8 @@ def add_pic_thumb(id):
     PC = PicCounter()
     if PC._get_pic_exist_id(id):
         PC._add_pic_thumb(id)
-        return f"点赞{id}号图片成功"
-    return f"点赞{id}号图片失败"
+        return f"点赞【{id}】号图片成功"
+    return f"点赞【{id}】号图片失败，该图片不存在！"
 
 
 def get_pic_id_hash(pic_hash):

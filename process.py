@@ -4,6 +4,7 @@ from io import BytesIO
 import json
 from pathlib import Path
 import re
+import traceback
 from PIL import Image, ImageDraw,ImageFont
 from .import limit, db
 from .youdao import tag_trans
@@ -35,6 +36,7 @@ async def process_tags(gid,uid,tags,add_db=True,arrange_tags=True):
                 db.add_xp_num(gid,uid,tag)
         except Exception as e:
             error_msg = "录入数据库失败"
+            traceback.print_exc()
     if trans == True:
         try:
             msg = re.split("([&])", tags ,1)
@@ -42,11 +44,13 @@ async def process_tags(gid,uid,tags,add_db=True,arrange_tags=True):
             tags = "".join(msg)
         except Exception as e:
             error_msg = "翻译失败"
+            traceback.print_exc()
     if limit_word == True:
         try:
             tags,tags_guolu = limit.guolv(tags)#过滤屏蔽词
         except Exception as e:
             error_msg = "过滤屏蔽词失败"
+            traceback.print_exc()
     if arrange_tags == True:
         try:
             taglist = re.split(',|，',tags)
@@ -55,6 +59,7 @@ async def process_tags(gid,uid,tags,add_db=True,arrange_tags=True):
             tags = ",".join(taglist)
         except Exception as e:
             error_msg = "整理tags失败"
+            traceback.print_exc()
     return tags,error_msg,tags_guolu
 
 def process_img(data):
@@ -66,6 +71,7 @@ def process_img(data):
         msg = f'\nseed:{msgdata["seed"]}   scale:{msgdata["scale"]}'
     except Exception as e:
         error_msg = "无法获取seed,请检测token是否失效"
+        traceback.print_exc()
     try:
         img = Image.open(BytesIO(data)).convert("RGB")
         buffer = BytesIO()  # 创建缓存
@@ -73,6 +79,7 @@ def process_img(data):
         imgmes = 'base64://' + b64encode(buffer.getvalue()).decode()
     except Exception as e:
         error_msg = "处理图像失败"
+        traceback.print_exc()
     return msg,imgmes,error_msg
 
 def img_make(msglist,page = 1):
