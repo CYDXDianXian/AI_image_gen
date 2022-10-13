@@ -723,7 +723,7 @@ async def check_personal_pic(bot, ev):
     if not len(msglist):
         await bot.finish(ev, '无法找到个人图片信息', at_sender=True)
     resultmes = img_make(msglist,page)
-    await bot.send(ev, resultmes, at_sender=True)
+    await bot.send(ev, f"您正在查看个人的第【{page}】页图片{resultmes}", at_sender=True)
 
 @sv.on_prefix(('查看本群pic', '查看本群图片'))
 async def check_group_pic(bot, ev):
@@ -738,7 +738,7 @@ async def check_group_pic(bot, ev):
     if not len(msglist):
         await bot.finish(ev, '无法找到本群图片信息', at_sender=True)
     resultmes = img_make(msglist,page)
-    await bot.send(ev, resultmes, at_sender=True)
+    await bot.send(ev, f"您正在查看本群的第【{page}】页图片{resultmes}", at_sender=True)
     
 @sv.on_prefix(("查看全部pic", "查看全部图片"))
 async def check_all_pic(bot, ev):
@@ -752,7 +752,7 @@ async def check_all_pic(bot, ev):
     if not len(msglist):
         await bot.finish(ev, '无法找到图片信息', at_sender=True)
     resultmes = img_make(msglist,page)
-    await bot.send(ev, resultmes, at_sender=True)
+    await bot.send(ev, f"您正在查看全部群的第【{page}】页图片{resultmes}", at_sender=True)
     #await bot.send(ev, msg, at_sender=True)
 
 @sv.on_prefix(("点赞pic", "点赞图片"))
