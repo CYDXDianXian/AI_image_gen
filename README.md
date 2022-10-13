@@ -1,5 +1,5 @@
 # AI_image_gen
- AI绘图hoshinobot插件版
+ AI绘图HoshinoBot插件版
 
 仓库地址：https://github.com/CYDXDianXian/AI_image_gen
 
