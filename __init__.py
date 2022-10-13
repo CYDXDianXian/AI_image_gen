@@ -481,14 +481,9 @@ async def gen_pic(bot, ev: CQEvent):
         load_data = json.loads(re.findall('{"steps".+?}', str(image))[0])
         image_b64 = 'base64://' + str(base64.b64encode(image).decode())
         mes = f"[CQ:image,file={image_b64}]\n"
-        mes += f'seed:{load_data["seed"]}\n'
-        mes += f'steps:{load_data["steps"]}\n'
+        mes += f'seed:{load_data["seed"]}   '
         mes += f'scale:{load_data["scale"]}\n'
-        mes += f'sampler:{load_data["sampler"]}\n'
-        mes += f'strength:{load_data["strength"]}\n'
-        mes += f'scale:{load_data["noise"]}\n'
-        if len(tags) < 100:
-            mes += f'tags:{tags}'
+        mes += f'tags:{tags}'
         await bot.send(ev, mes, at_sender=True)
     except Exception as e:
         await bot.send(ev, f"生成失败…{e}")
@@ -542,14 +537,7 @@ async def gen_pic_from_pic(bot, ev: CQEvent):
         image_b64 = f"base64://{str(base64.b64encode(img).decode())}"
         load_data = json.loads(re.findall('{"steps".+?}', str(img))[0])
         mes = f"[CQ:image,file={image_b64}]\n"
-        mes += f'seed:{load_data["seed"]}\n'
-        mes += f'steps:{load_data["steps"]}\n'
-        mes += f'scale:{load_data["scale"]}\n'
-        mes += f'sampler:{load_data["sampler"]}\n'
-        mes += f'strength:{load_data["strength"]}\n'
-        mes += f'scale:{load_data["noise"]}\n'
-        if len(tags) < 100:
-            mes += f'tags:{tags}'
+        mes += f'seed:{load_data["seed"]}'
         await bot.send(ev, mes, at_sender=True)
     except Exception as e:
         await bot.send(ev, f"生成失败…{e}")
