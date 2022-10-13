@@ -1,4 +1,2 @@
 nonebot~=1.8.4
 Pillow~=9.2.0
-pyahocorasick~=1.4.4
-requests~=2.27.1
