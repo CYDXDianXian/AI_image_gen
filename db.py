@@ -1,3 +1,4 @@
+import base64
 import os
 import sqlite3
 
@@ -157,42 +158,51 @@ class PicCounter:
             with self._connect() as conn:
                 conn.execute(
                     "INSERT OR IGNORE INTO PIC_DATA (GID,UID,PIC_HASH,PIC_DIR,PIC_MSG,THUMB) \
-                                VALUES (?,?,?,?,?,?)", (gid, uid, pic_hash, pic_dir, pic_msg, thumb)
+                                VALUES (?,?,?,?,?,?)", [gid, uid, pic_hash, pic_dir, pic_msg, thumb]
+                )
+        except Exception as e:
+            raise e
+
+    def _del_pic(self, id): #删除数据
+        try:
+            with self._connect() as conn:
+                conn.execute(
+                    f"DELETE FROM PIC_DATA WHERE ID =?",[id]
                 )
         except Exception as e:
             raise e
 
     def _get_pic_exist_hash(self, pic_hash): #通过hash值来判断图片是否存在，存在1，不存在0
         try:
-            r = self._connect().execute(f"SELECT PIC_HASH FROM PIC_DATA WHERE PIC_HASH={pic_hash}").fetchone()
+            r = self._connect().execute(f"SELECT PIC_HASH FROM PIC_DATA WHERE PIC_HASH=?",[pic_hash]).fetchone()
             return 0 if r is None else 1
         except Exception as e:
             raise e
 
     def _get_pic_exist_id(self, id): #通过id来判断图片是否存在，存在1，不存在0
         try:
-            r = self._connect().execute(f"SELECT PIC_HASH FROM PIC_DATA WHERE ID={id}").fetchone()
+            r = self._connect().execute(f"SELECT PIC_HASH FROM PIC_DATA WHERE ID=?",[id]).fetchone()
             return 0 if r is None else 1
         except Exception as e:
             raise e
 
     def _get_pic_data_id(self, id): #通过自增的ID获取图片信息 路径和msg
         try:
-            r = self._connect().execute("SELECT PIC_DIR,PIC_MSG FROM PIC_DATA WHERE ID=?", (id)).fetchone()
+            r = self._connect().execute("SELECT PIC_DIR,PIC_MSG FROM PIC_DATA WHERE ID=?", [id]).fetchone()
             return r if r else {}
         except Exception as e:
             raise e
 
     def _get_pic_id_hash(self, pic_hash): #通过图片hash获取ID
         try:
-            r = self._connect().execute(f"SELECT ID FROM PIC_DATA WHERE PIC_HASH={pic_hash}",).fetchone()
+            r = self._connect().execute(f"SELECT ID FROM PIC_DATA WHERE PIC_HASH=?",[pic_hash]).fetchone()
             return r if r else {}
         except Exception as e:
             raise e
 
     def _get_pic_thumb(self, id): #通过自增的ID获取图片信息 thumb
         try:
-            r = self._connect().execute("SELECT THUMB FROM PIC_DATA WHERE ID=?", (id)).fetchone()
+            r = self._connect().execute("SELECT THUMB FROM PIC_DATA WHERE ID=?", [id]).fetchone()
             return 0 if r is None else r[0]
         except Exception as e:
             raise e
@@ -203,18 +213,25 @@ class PicCounter:
             num += 1
             with self._connect() as conn:
                 conn.execute(
-                    f"UPDATE PIC_DATA SET THUMB = {num} WHERE ID = {id};"
+                    f"UPDATE PIC_DATA SET THUMB =? WHERE ID =?",[num,id]
                 )
         except Exception as e:
             raise e
 
-
+    def _get_pic_list_all(self, num):
+        try:
+            with self._connect() as conn:
+                r = conn.execute(
+                    f"SELECT ID,PIC_DIR,THUMB FROM PIC_DATA ORDER BY THUMB desc LIMIT {num}").fetchall()
+            return r if r else {}
+        except Exception as e:
+            raise e
 
     def _get_pic_list_group(self, gid, num):
         try:
             with self._connect() as conn:
                 r = conn.execute(
-                    f"SELECT ID,PIC_DIR,THUMB FROM PIC_DATA WHERE GID={gid} ORDER BY THUMB desc LIMIT {num}").fetchall()
+                    f"SELECT ID,PIC_DIR,THUMB FROM PIC_DATA WHERE GID=? ORDER BY THUMB desc LIMIT {num}",[gid]).fetchall()
             return r if r else {}
         except Exception as e:
             raise e
@@ -223,7 +240,7 @@ class PicCounter:
         try:
             with self._connect() as conn:
                 r = conn.execute(
-                    f"SELECT ID,PIC_DIR,THUMB FROM PIC_DATA WHERE UID={uid} ORDER BY THUMB desc LIMIT {num}").fetchall()
+                    f"SELECT ID,PIC_DIR,THUMB FROM PIC_DATA WHERE UID=? ORDER BY THUMB desc LIMIT {num}",[uid]).fetchall()
             return r if r else {}
         except Exception as e:
             raise e
@@ -249,7 +266,27 @@ def get_pic_id_hash(pic_hash):
     id = PC._get_pic_id_hash(pic_hash)
     return id
 
-def get_pic_list_group(gid,num=10):
+def get_pic_data_id(id):
+    PC = PicCounter()
+    r = PC._get_pic_data_id(id)
+    return r
+
+def get_pic_list_all(num=8):
+    PC = PicCounter()
+    r = PC._get_pic_list_all(num)
+    return r
+
+def get_pic_list_group(gid,num=8):
     PC = PicCounter()
     r = PC._get_pic_list_group(gid, num)
+    return r
+
+def get_pic_list_personal(uid,num=8):
+    PC = PicCounter()
+    r = PC._get_pic_list_personal(uid, num)
+    return r
+
+def del_pic(id):
+    PC = PicCounter()
+    r = PC._del_pic(id)
     return r

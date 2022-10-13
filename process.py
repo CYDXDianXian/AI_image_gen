@@ -75,20 +75,20 @@ def process_img(data):
         error_msg = "处理图像失败"
     return msg,imgmes,error_msg
 
-def img_make(msglist):
-    msglist = msglist
+def img_make(msglist,page = 1):
     target = Image.new('RGB', (1920,1080),(255,255,255))
     i=0
+    page = page - 1
     idlist,imglist,thumblist = [],[],[]
     for (a,b,c) in msglist:
         idlist.append(a)
         imglist.append(b)
         thumblist.append(c)
-    for i in range(0,8):
+    for index in range(0+(page*8),8+(page*8)):
         try:
-            id = f"ID: {idlist[i]}" #图片ID
-            thumb = f"点赞: {thumblist[i]}" #点赞数
-            image_path= str(imglist[i]) #图片路径
+            id = f"ID: {idlist[index]}" #图片ID
+            thumb = f"点赞: {thumblist[index]}" #点赞数
+            image_path= str(imglist[index]) #图片路径
         except:
             break
         region = Image.open(image_path)

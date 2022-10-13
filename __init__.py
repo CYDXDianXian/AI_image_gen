@@ -703,26 +703,114 @@ async def upload_header(bot, ev):
         traceback.print_exc()
         await bot.send(ev, f"报错:{e}",at_sender=True)
 
+@sv.on_prefix(("查看个人pic", "查看个人图片"))
+async def check_personal_pic(bot, ev):
+    gid = ev.group_id
+    uid = ev.user_id
+    page = ev.message.extract_plain_text().strip()
+    if not page.isdigit() and '*' not in page:
+        page = 1
+    page = int(page)
+    num = page*8
+    msglist = db.get_pic_list_group(num)
+    msglist = db.get_pic_list_personal(uid,num)
+    if not len(msglist):
+        await bot.finish(ev, '无法找到个人图片信息', at_sender=True)
+    resultmes = img_make(msglist,page)
+    await bot.send(ev, resultmes, at_sender=True)
+
 @sv.on_fullmatch(('查看本群pic', '查看本群图片'))
 async def check_group_pic(bot, ev):
     gid = ev.group_id
     uid = ev.user_id
-    try:
-        msglist = db.get_pic_list_group(gid)
-        if not len(msglist):
-            await bot.finish(ev, '无法找到本群图片信息', at_sender=True)
-        resultmes = img_make(msglist)
-        await bot.send(ev, resultmes, at_sender=True)
-    except Exception as e:
-        await bot.send(ev, f'查询失败{e}')
+    page = ev.message.extract_plain_text().strip()
+    if not page.isdigit() and '*' not in page:
+        page = 1
+    page = int(page)
+    num = page*8
+    msglist = db.get_pic_list_group(gid,num)
+    if not len(msglist):
+        await bot.finish(ev, '无法找到本群图片信息', at_sender=True)
+    resultmes = img_make(msglist,page)
+    await bot.send(ev, resultmes, at_sender=True)
+    
+@sv.on_prefix(("查看全部pic", "查看全部图片"))
+async def check_all_pic(bot, ev):
+    page = ev.message.extract_plain_text().strip()
+    if not page.isdigit() and '*' not in page:
+        page = 1
+    page = int(page)
+    num = page*8
+    msglist = db.get_pic_list_all(num)
+    #msg = f"页数{page} 数据{len(msglist)}"
+    if not len(msglist):
+        await bot.finish(ev, '无法找到图片信息', at_sender=True)
+    resultmes = img_make(msglist,page)
+    await bot.send(ev, resultmes, at_sender=True)
+    #await bot.send(ev, msg, at_sender=True)
 
-@sv.on_prefix("点赞pic", "点赞图片")
+@sv.on_prefix(("点赞pic", "点赞图片"))
 async def img_thumb(bot, ev):
     id = ev.message.extract_plain_text().strip()
     if not id.isdigit() and '*' not in id:
         await bot.finish(ev, '图片ID???')
     msg = db.add_pic_thumb(id)
     await bot.send(ev, msg, at_sender=True)
+
+@sv.on_prefix(("删除pic", "删除图片"))
+async def del_img(bot, ev):
+    gid = ev.group_id
+    uid = ev.user_id
+    if not priv.check_priv(ev,priv.SUPERUSER):
+        msg = "只有超管才能删除"
+        await bot.finish(ev, msg, at_sender=True)
+    id = ev.message.extract_plain_text().strip()
+    if not id.isdigit() and '*' not in id:
+        await bot.finish(ev, '图片ID???')
+    msg = db.del_pic(id)
+    await bot.send(ev, msg, at_sender=True)
+
+@sv.on_rex((r'^快捷绘图 ([0-9]\d*)(.*)'))
+async def quick_img(bot, ev):
+    gid = ev.group_id
+    uid = ev.user_id
+    match = ev['match']
+    id = match.group(1)
+    tags = match.group(2)
+
+    num = 1
+    result, msg = check_lmt(uid, num, gid) # 检查群权限与个人次数
+    if result != 0:
+        await bot.send(ev, msg)
+        return
+    try:
+        msg = db.get_pic_data_id(id)
+        (a,b) = msg
+        msg = re.sub("&seed=[0-9]\d*", "", b, count=0, flags=0)
+        tags +=f",{msg}"
+        tags,error_msg,tags_guolu=process_tags(gid,uid,tags) #tags处理过程
+        if len(error_msg):
+            await bot.send(ev, f"已报错：{error_msg}", at_sender=True)
+        if len(tags_guolu):
+            await bot.send(ev, f"已过滤：{tags_guolu}", at_sender=True)
+        if not len(tags):
+            tags = default_tags
+            await bot.send(ev, f"将使用默认tag：{default_tags}", at_sender=True)
+        try:
+            url = word2img_url + tags + token
+            response = await aiorequests.get(url, timeout = 30)
+            data = await response.content
+        except Exception as e:
+            await bot.finish(ev, f"请求超时~", at_sender=True)
+        msg,imgmes,error_msg = process_img(data)
+        if len(error_msg):
+            await bot.finish(ev, f"已报错：{error_msg}", at_sender=True)
+        resultmes = f"[CQ:image,file={imgmes}]"
+        resultmes += msg
+        resultmes += f"\n tags:{tags}"
+        await bot.send(ev, resultmes, at_sender=True)
+    except Exception as e:
+        await bot.send(ev, f"报错:{e}",at_sender=True)
 
 @sv.scheduled_job('cron', hour='2', minute='36')
 async def set_ban_list():
