@@ -7,6 +7,9 @@ wordlist = get_config('ban_word', 'wordlist')
 def guolv(sent=str):
     sent_cp = unicodedata.normalize('NFKC', sent) # 中文标点转为英文
     sent_cp = sent_cp.lower() #转为小写
+    sent_cp = sent_cp.replace('&shape=portrait', '&shape=Portrait')
+    sent_cp = sent_cp.replace('&shape=landscape', '&shape=Landscape')
+    sent_cp = sent_cp.replace('&shape=square', '&shape=Square')
     sent_list_ = sent_cp.split(",") # 从逗号处分开，返回列表
     
     sent_list = []
