@@ -483,7 +483,8 @@ async def gen_pic(bot, ev: CQEvent):
         mes = f"[CQ:image,file={image_b64}]\n"
         mes += f'seed:{load_data["seed"]}   '
         mes += f'scale:{load_data["scale"]}\n'
-        mes += f'tags:{tags}'
+        if len(tags) < 2000:
+            mes += f'tags:{tags}'
         await bot.send(ev, mes, at_sender=True)
     except Exception as e:
         await bot.send(ev, f"生成失败…{e}")
@@ -537,7 +538,10 @@ async def gen_pic_from_pic(bot, ev: CQEvent):
         image_b64 = f"base64://{str(base64.b64encode(img).decode())}"
         load_data = json.loads(re.findall('{"steps".+?}', str(img))[0])
         mes = f"[CQ:image,file={image_b64}]\n"
-        mes += f'seed:{load_data["seed"]}'
+        mes += f'seed:{load_data["seed"]}   '
+        mes += f'scale:{load_data["scale"]}\n'
+        if len(tags) < 2000:
+            mes += f'tags:{tags}'
         await bot.send(ev, mes, at_sender=True)
     except Exception as e:
         await bot.send(ev, f"生成失败…{e}")
@@ -694,7 +698,7 @@ async def upload_header(bot, ev):
         await bot.finish(ev, '格式出错', at_sender=True)
     try:
         db.add_pic(ev.group_id, ev.user_id, pic_hash, str(pic_dir), pic_msg)
-        await bot.send(ev, f'上传成功！', at_sender=True)
+        await bot.send(ev, f'上传成功！已成功保存图片和配方', at_sender=True)
     except Exception as e:
         traceback.print_exc()
         await bot.send(ev, f"报错:{e}",at_sender=True)
