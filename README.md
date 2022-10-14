@@ -5,14 +5,12 @@
 
 感谢 [sans](https://github.com/sanshanya) 老师、[Cath]() 老师 以及各群友上传的代码，这里主要对群友上传的各个版本代码进行了缝合
 
-- **注意！！！本次更新后旧配置文件`config.json`与新版无法兼容，请备份好个人api和token数据后删除`config.json`文件，再使用`git pull`命令从仓库拉取更新**
-
-- `AssertionError: Service name "ai绘图" already exist!`若更新后出现该报错，是缺少pyahocorasick依赖所致，使用`pip install -r requirements.txt`命令重新安装一下依赖即可解决。https://github.com/CYDXDianXian/AI_image_gen/issues/3#issuecomment-1275616669
+- **注意！！！旧配置文件`config.json`与新版无法兼容，请备份好个人api和token数据后删除`config.json`文件，再使用`git pull`命令从仓库拉取更新，获取配置文件模板后按文档后面提到的配置方法进行操作**
 
 ## 特点
 
 - [x] 根据tag绘制图片，根据tag+图片绘制图片
-- [x] 接入有道翻译api，可自动将中文tag翻译为英文
+- [x] 接入有道翻译api和百度翻译api，可自动将中文tag翻译为英文
 - [x] 上传AI生成的图片及其配方
 - [x] 查看个人/本群/全部群图片
 - [x] 查看已上传图片的配方
@@ -42,12 +40,13 @@
    > 更新配置文件后需重启hoshinobot才能生效！
 
    - 在`api`中填写IP地址
-
    - 在`token`中填写你的token
-
+   - 在`baidu_appid`中填写自己的百度翻译APP ID
+   - 在`baidu_key`填写自己的百度翻译密钥
    - 在`app_id`中填写自己的[有道智云](https://ai.youdao.com/)应用id
-
    - 在`app_key`中填写自己的[有道智云](https://ai.youdao.com/)应用秘钥
+
+   百度翻译与有道翻译二选一即可，不用的翻译可以关掉。（建议使用百度翻译，对二次元词汇翻译效果较好，如何获取API请翻阅文档后半部分的**API说明**）
 
    ```python
    {
@@ -68,8 +67,15 @@
            "api": "",  # 设置api，例如："http://11.222.333.444:5555/"
            "token": ""  # 设置你的token，例如："ADGdsvSFGsaA5S2D"，（若你的api无需使用token，留空即可）
        },
+   	"baidu": {
+   		"baidu_trans": True, # 百度翻译开关
+   		"baidu_api": "https://fanyi-api.baidu.com/api/trans/vip/translate", # 百度api地址
+   		"baidu_appid": "", # 自己的百度翻译APP ID
+   		"baidu_key": "" # 自己的百度翻译密钥
+   	},
        "youdao": {
-           "youdao_api": 'https://openapi.youdao.com/api',  # 有道api地址
+   		"youdao_trans": False, # 有道翻译开关
+           "youdao_api": "https://openapi.youdao.com/api",  # 有道api地址
            "app_id": "",  # 自己的有道智云应用id
            "app_key": ""  # 自己的有道智云应用秘钥
        },
@@ -139,6 +145,12 @@
 - 目前API都为私人搭建，你需要一个拥有有效付费计划的 [NovelAI](https://novelai.net/) 账号，本插件只使用 [NovelAI](https://novelai.net/) 搭建的API所提供的接口。付费计划请自行前往 [NovelAI](https://novelai.net/) 了解。(别问怎么搭建API，我很菜，我也不会QAQ，其他地方应该有教程的吧！）
 - 目前可用的API：[路路佬的API](http://91.216.169.75:5010/token)
 - 有道翻译API：请访问[有道智云](https://ai.youdao.com/)注册账号，在控制台中以API接入方式创建一个文本翻译应用，查看应用即可获取有道应用ID和应用秘钥，然后将其填写至配置文件即可使用有道翻译服务
+- **如何使用百度翻译API？**（目前来看百度翻译二次元词汇比有道效果好一点）
+  1. 使用您的百度账号登录[百度翻译开放平台](http://api.fanyi.baidu.com/)
+  2. 注册成为开发者，获得 APPID
+  3. 进行开发者认证（如仅需标准版可跳过）【仅需实名注册一下就可以使用高级版，建议认证。高级版免费调用量为100万字符/月】
+  4. 开通通用翻译API服务：[开通链接](https://fanyi-api.baidu.com/choose)
+  5. 在管理控制台中查看APP ID与密钥，将其填入配置文件对应的位置
 
 ## 使用效果预览
 
