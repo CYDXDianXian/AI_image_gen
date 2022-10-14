@@ -16,7 +16,14 @@
         "api": "",
         "token": ""
     },
+    "baidu": {
+        "baidu_trans": true,
+        "baidu_api": "http://api.fanyi.baidu.com/api/trans/vip/translate",
+        "baidu_appid": "",
+        "baidu_key": ""
+    },
     "youdao": {
+        "youdao_trans": false,
         "youdao_api": "https://openapi.youdao.com/api",
         "app_id": "",
         "app_key": ""
