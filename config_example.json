@@ -18,7 +18,7 @@
     },
     "baidu": {
         "baidu_trans": true,
-        "baidu_api": "http://api.fanyi.baidu.com/api/trans/vip/translate",
+        "baidu_api": "https://fanyi-api.baidu.com/api/trans/vip/translate",
         "baidu_appid": "",
         "baidu_key": ""
     },

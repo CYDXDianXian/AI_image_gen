@@ -19,7 +19,7 @@ config_default = {
     },
 	"baidu": {
 		"baidu_trans": True, # 百度翻译开关
-		"baidu_api": "http://api.fanyi.baidu.com/api/trans/vip/translate", # 百度api地址
+		"baidu_api": "https://fanyi-api.baidu.com/api/trans/vip/translate", # 百度api地址
 		"baidu_appid": "", # 自己的百度翻译APP ID
 		"baidu_key": "" # 自己的百度翻译密钥
 	},
