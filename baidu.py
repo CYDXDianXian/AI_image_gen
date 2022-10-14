@@ -1,4 +1,3 @@
-import asyncio
 from hoshino import aiorequests
 import string
 import time
@@ -53,8 +52,3 @@ async def tag_baiduTrans(tags):
     if(isContainChinese(tags)):
         tags = await baiduTranslate(tags)
     return tags
-
-# while True:
-#     word = input("输入你想翻译的内容: ")
-#     a = asyncio.run(tag_baiduTrans(word))
-#     print(a)
