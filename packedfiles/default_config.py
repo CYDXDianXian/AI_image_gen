@@ -17,8 +17,15 @@ config_default = {
         "api": "",  # 设置api，例如："http://11.222.333.444:5555/"
         "token": ""  # 设置你的token，例如："ADGdsvSFGsaA5S2D"，（若你的api无需使用token，留空即可）
     },
+	"baidu": {
+		"baidu_trans": True, # 百度翻译开关
+		"baidu_api": "http://api.fanyi.baidu.com/api/trans/vip/translate", # 百度api地址
+		"baidu_appid": "", # 自己的百度翻译APP ID
+		"baidu_key": "" # 自己的百度翻译密钥
+	},
     "youdao": {
-        "youdao_api": 'https://openapi.youdao.com/api',  # 有道api地址
+		"youdao_trans": False, # 有道翻译开关
+        "youdao_api": "https://openapi.youdao.com/api",  # 有道api地址
         "app_id": "",  # 自己的有道智云应用id
         "app_key": ""  # 自己的有道智云应用秘钥
     },
