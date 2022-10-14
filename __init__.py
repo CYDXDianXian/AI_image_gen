@@ -4,7 +4,9 @@ import traceback
 import hoshino
 from . import db
 from .packedfiles import default_config
-from hoshino.typing import CQEvent
+from .deepDanbooru import get_tags
+from .utils import text_to_image, image_to_base64
+from hoshino.typing import CQEvent, MessageSegment
 import base64
 import re
 import json
@@ -239,7 +241,7 @@ async def send_config(bot, ev):
 
 @sv.on_fullmatch(('ai绘图帮助', '生成涩图帮助', '生成色图帮助'))
 async def gen_pic_help(bot, ev: CQEvent):
-    await bot.send(ev, sv_help)
+    await bot.send(ev, MessageSegment.image(image_to_base64(text_to_image(sv_help))), at_sender=True)
 
 
 @sv.on_prefix(('ai绘图', '生成色图', '生成涩图'))
@@ -336,6 +338,26 @@ async def gen_pic_from_pic(bot, ev: CQEvent):
     except Exception as e:
         await bot.send(ev, f"生成失败…{e}")
         return
+
+
+@sv.on_prefix(('图片鉴赏', '鉴赏图片', '生成tag', '生成tags'))
+async def generate_tags(bot, ev):
+    uid = ev['user_id']
+    gid = ev['group_id']
+
+    num = 1
+    result, msg = check_lmt(uid, num, gid)  # 检查群权限与个人次数
+    if result != 0:
+        await bot.send(ev, msg)
+        return
+    url = ev.message[0]["data"]["url"]
+    image = Image.open(io.BytesIO(await (await aiorequests.get(url, timeout=20)).content))
+    json_tags = await get_tags(image)
+    if json_tags:
+        msg = '\n'.join([f'tag{i + 1}:\t{t["label"]}\t{t["confidence"]}' for i, t in enumerate(json_tags)])
+        await bot.send(ev, MessageSegment.reply(ev.message_id) + MessageSegment.image(image_to_base64(text_to_image(msg))))
+    else:
+        await bot.send(ev, '生成失败，肯定不是bot的错！', at_sender=True)
 
     
 @sv.on_fullmatch(('本群XP排行', '本群xp排行'))
