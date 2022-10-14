@@ -41,8 +41,8 @@
 
    - 在`api`中填写IP地址
    - 在`token`中填写你的token
-   - 在`baidu_appid`中填写自己的百度翻译APP ID
-   - 在`baidu_key`填写自己的百度翻译密钥
+   - 在`baidu_appid`中填写自己的[百度翻译](https://api.fanyi.baidu.com/)APP ID
+   - 在`baidu_key`填写自己的[百度翻译](https://api.fanyi.baidu.com/)密钥
    - 在`app_id`中填写自己的[有道智云](https://ai.youdao.com/)应用id
    - 在`app_key`中填写自己的[有道智云](https://ai.youdao.com/)应用秘钥
 
