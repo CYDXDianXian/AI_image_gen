@@ -1,2 +1,4 @@
-nonebot~=1.8.4
-Pillow~=9.2.0
+nonebot~=1.9.1
+Pillow~=8.3.2
+pathlib~=1.0.1
+retrying~=1.3.3
