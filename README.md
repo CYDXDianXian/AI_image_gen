@@ -5,7 +5,12 @@
 
 感谢 [sans](https://github.com/sanshanya) 老师、[Cath]() 老师 以及各群友上传的代码，这里主要对群友上传的各个版本代码进行了缝合
 
-- **注意！！！2022-10-14版本更新后，旧配置文件`config.json`与新版无法兼容，请备份好个人api和token数据后删除`config.json`文件，再使用`git pull`命令从仓库拉取更新，获取配置文件模板`config_example.json`后按文档后面提到的配置方法进行操作。若您在使用过程中发生报错，请检查配置文件是否已更新**
+
+## 注意事项
+
+- **2022-10-14版本更新后，旧配置文件`config.json`与新版无法兼容，请备份好个人api和token数据后删除`config.json`文件，再使用`git pull`命令从仓库拉取更新，获取配置文件模板`config_example.json`后按文档后面提到的配置方法进行操作。若您在使用过程中发生报错，请检查配置文件是否已更新**
+
+- **2022-10-15版本更新后，新增了依赖pathlib和retrying，如出现报错请在插件目录下运行powershell输入`pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple`来安装新增的依赖**
 
 ## 特点
 
@@ -170,6 +175,8 @@
 ![image](https://user-images.githubusercontent.com/71607036/195219944-59930139-46d6-474e-8262-de4711fffcee.png)
 
 ![image](https://user-images.githubusercontent.com/71607036/195219976-a4a9d82b-a1d5-4ff9-912a-9ea808d90a75.png)
+
+![image](https://user-images.githubusercontent.com/71607036/195997014-3344cfa8-9568-4374-b64e-04e8bf2316e0.png)
 
 ## 鸣谢
 
