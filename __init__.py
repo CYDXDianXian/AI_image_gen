@@ -346,11 +346,11 @@ async def generate_tags(bot, ev):
     uid = ev['user_id']
     gid = ev['group_id']
 
-    num = 1
-    result, msg = check_lmt(uid, num, gid)  # 检查群权限与个人次数
-    if result != 0:
-        await bot.send(ev, msg)
-        return
+    # num = 1
+    # result, msg = check_lmt(uid, num, gid)  # 检查群权限与个人次数
+    # if result != 0:
+    #     await bot.send(ev, msg)
+    #     return
 
     url = ''
     for i in ev.message:
@@ -358,7 +358,7 @@ async def generate_tags(bot, ev):
             url = i["data"]["url"]
     if not url:
         await bot.finish(ev, '请输入需要分析的图片', at_sender=True)
-    await bot.send(ev, f"正在生成，请稍后...\n(今日剩余{get_config('base', 'daily_max') - tlmt.get_num(uid)}次)", at_sender=True)
+    await bot.send(ev, f"正在鉴赏图片，请稍后...", at_sender=True)
     image = Image.open(io.BytesIO(await (await aiorequests.get(url, timeout=20)).content))
     json_tags = await get_tags(image)
     if json_tags:
