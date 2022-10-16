@@ -5,7 +5,7 @@ import hoshino
 from . import db
 from .packedfiles import default_config
 from .deepDanbooru import get_tags
-from .utils import text_to_image, image_to_base64
+from .utils import text_to_image, image_to_base64, get_image_and_msg
 from hoshino.typing import CQEvent, MessageSegment
 import base64
 import re
@@ -31,7 +31,6 @@ sv_help = '''
 [删除pic/删除图片+图片ID] 删除对应图片和配方(仅限维护组使用)
 [本群/个人XP排行] 本群/个人的tag使用频率
 [本群/个人XP缝合] 缝合tags进行绘图
-[图片鉴赏/生成tag] 根据上传的图片生成tags
 
 以下为维护组使用(空格不能漏)：
 [绘图 状态 <群号>] 查看本群或指定群的模块开启状态
@@ -287,7 +286,7 @@ async def gen_pic(bot, ev: CQEvent):
 thumbSize = (768, 768)
 
 
-@sv.on_prefix(('以图生图', '以图绘图'))
+@sv.on_keyword(('以图生图', '以图绘图'))
 async def gen_pic_from_pic(bot, ev: CQEvent):
     uid = ev['user_id']
     gid = ev['group_id']
@@ -298,6 +297,7 @@ async def gen_pic_from_pic(bot, ev: CQEvent):
         await bot.send(ev, msg)
         return
 
+    image, _, _ = await get_image_and_msg(bot, ev)
     tags = ev.message.extract_plain_text().strip()
     tags,error_msg,tags_guolu=await process_tags(gid,uid,tags) #tags处理过程
     if len(error_msg):
@@ -309,13 +309,11 @@ async def gen_pic_from_pic(bot, ev: CQEvent):
         await bot.send(ev, f"将使用默认tag：{default_tags}", at_sender=True)
     try:
         if tags == "":
-            await bot.send(ev, '以图绘图必须添加tag')
-            return
-        else:
-            url = ev.message[1]["data"]["url"]
+            await bot.finish(ev, '以图绘图必须添加tag')
+        elif image is None:
+            await bot.finish(ev, '请输入需要绘图的图片')
         await bot.send(ev, f"正在生成，请稍后...\n(今日剩余{get_config('base', 'daily_max') - tlmt.get_num(uid)}次)", at_sender=True)
         post_url = img2img_url + (f"?tags={tags}" if tags != "" else "") + token
-        image = Image.open(io.BytesIO(await (await aiorequests.get(url, timeout=20)).content))
         image = image.convert('RGB')
         if (image.size[0] > image.size[1]):
             image_shape = "Landscape"
@@ -341,25 +339,21 @@ async def gen_pic_from_pic(bot, ev: CQEvent):
         return
 
 
-@sv.on_prefix(('图片鉴赏', '鉴赏图片', '生成tag', '生成tags'))
+@sv.on_keyword(('图片鉴赏', '鉴赏图片', '生成tag', '生成tags'))
 async def generate_tags(bot, ev):
     uid = ev['user_id']
     gid = ev['group_id']
 
-    # num = 1
-    # result, msg = check_lmt(uid, num, gid)  # 检查群权限与个人次数
-    # if result != 0:
-    #     await bot.send(ev, msg)
-    #     return
+    num = 1
+    result, msg = check_lmt(uid, num, gid)  # 检查群权限与个人次数
+    if result != 0:
+        await bot.send(ev, msg)
+        return
 
-    url = ''
-    for i in ev.message:
-        if i.type == 'image':
-            url = i["data"]["url"]
-    if not url:
+    image, _, _ = await get_image_and_msg(bot, ev)
+    if not image:
         await bot.finish(ev, '请输入需要分析的图片', at_sender=True)
-    await bot.send(ev, f"正在鉴赏图片，请稍后...", at_sender=True)
-    image = Image.open(io.BytesIO(await (await aiorequests.get(url, timeout=20)).content))
+    await bot.send(ev, f"正在生成，请稍后...\n(今日剩余{get_config('base', 'daily_max') - tlmt.get_num(uid)}次)", at_sender=True)
     json_tags = await get_tags(image)
     if json_tags:
         msg = '\n'.join([f'tag{i + 1}:\t{t["label"]}\t{t["confidence"]}' for i, t in enumerate(json_tags)])
@@ -483,20 +477,10 @@ async def get_personal_xp_pic(bot, ev):
     else:
         msg += '暂无你在本群的XP信息'
 
-@sv.on_prefix(('上传pic', '上传图片'))
+@sv.on_keyword(('上传pic', '上传图片'))
 async def upload_header(bot, ev):
     try:
-        for i in ev.message:
-            if i.type == "image":
-                image=str(i)
-                break
-        image_url = re.match(r"\[CQ:image,file=(.*),url=(.*)\]", str(image))
-        pic_url = image_url.group(2)
-        response = await aiorequests.get(pic_url)
-        img = Image.open(BytesIO(await response.content)).convert("RGB")
-        ls_f=base64.b64encode(BytesIO(await response.content).read())
-        imgdata=base64.b64decode(ls_f)
-        pic_hash = hash(imgdata)
+        img, pic_hash, msg = await get_image_and_msg(bot, ev)
         datetime = calendar.timegm(time.gmtime())
         img_name= str(datetime)+'.png'
         pic_dir = save_image_path / img_name # 拼接图片路径
@@ -505,14 +489,14 @@ async def upload_header(bot, ev):
         s = [0.6667,1.5,1]
         s1 =["Portrait","Landscape","Square"]
         shape=s1[s.index(nsmallest(1, s, key=lambda x: abs(x-c))[0])]#shape
-        Path(save_image_path, img_name).write_bytes(imgdata) # 保存图片到本地
+        img.save(str(pic_dir)) # 保存图片到本地
     except:
         traceback.print_exc()
         await bot.finish(ev, '保存图片出错', at_sender=True)
     try:
-        seed=(str(ev.message.extract_plain_text().strip()).split(f"scale:")[0]).split('seed:')[1].strip()
-        scale=(str(ev.message.extract_plain_text().strip()).split(f"tags:")[0]).split('scale:')[1].strip()
-        tags=(str(ev.message.extract_plain_text().strip()).split(f"tags:")[1])
+        seed=(str(msg).split(f"scale:")[0]).split('seed:')[1].strip()
+        scale=(str(msg).split(f"tags:")[0]).split('scale:')[1].strip()
+        tags=(str(msg).split(f"tags:")[1])
         pic_msg = tags + f"&seed={seed}" + f"&scale={scale}"
     except:
         await bot.finish(ev, '格式出错', at_sender=True)
