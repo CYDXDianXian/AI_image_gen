@@ -41,6 +41,10 @@ def get_image_hash(content):
     return pic_hash
 
 
+def key_worlds_removal(msg):
+    return msg.replace('以图生图', '').replace('以图绘图', '')
+
+
 async def get_image_and_msg(bot, ev):
     url = ''
     for i in ev.message:

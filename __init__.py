@@ -5,7 +5,7 @@ import hoshino
 from . import db
 from .packedfiles import default_config
 from .deepDanbooru import get_tags
-from .utils import text_to_image, image_to_base64, get_image_and_msg
+from .utils import text_to_image, image_to_base64, get_image_and_msg, key_worlds_removal
 from hoshino.typing import CQEvent, MessageSegment
 import base64
 import re
@@ -297,8 +297,7 @@ async def gen_pic_from_pic(bot, ev: CQEvent):
         await bot.send(ev, msg)
         return
 
-    image, _, _ = await get_image_and_msg(bot, ev)
-    tags = ev.message.extract_plain_text().strip()
+    tags = key_worlds_removal(ev.message.extract_plain_text()).strip()
     tags,error_msg,tags_guolu=await process_tags(gid,uid,tags) #tags处理过程
     if len(error_msg):
         await bot.send(ev, f"已报错：{error_msg}", at_sender=True)
@@ -308,6 +307,7 @@ async def gen_pic_from_pic(bot, ev: CQEvent):
         tags = default_tags
         await bot.send(ev, f"将使用默认tag：{default_tags}", at_sender=True)
     try:
+        image, _, _ = await get_image_and_msg(bot, ev)
         if tags == "":
             await bot.finish(ev, '以图绘图必须添加tag')
         elif image is None:
