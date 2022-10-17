@@ -5,7 +5,6 @@ import base64
 import random
 import aiohttp
 from PIL import Image
-from retrying import retry
 from hoshino import aiorequests
 
 
@@ -19,16 +18,16 @@ def generate_code(code_len=6):
     return code
 
 
-@retry(stop_max_attempt_number=3)
 async def fetch_data(_hash):
     url_status = 'https://hf.space/embed/hysts/DeepDanbooru/api/queue/status/'
     resj = await (await aiorequests.post(url_status, json={'hash': _hash})).json()
-    if resj['status'] == 'PENDING':
-        raise IOError('正在生成，请耐心等待')
-    elif resj['status'] == 'COMPLETE':
-        return resj['data']['data'][0]['confidences']
-    else:
-        return None
+    while True:
+        if resj['status'] == 'PENDING':
+            continue
+        elif resj['status'] == 'COMPLETE':
+            return resj['data']['data'][0]['confidences']
+        else:
+            return None
 
 
 async def get_tags(image):
