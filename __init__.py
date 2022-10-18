@@ -13,7 +13,6 @@ import json
 from hoshino import Service, aiorequests, priv
 import io
 from PIL import Image
-from io import BytesIO
 import time,calendar
 from heapq import nsmallest
 

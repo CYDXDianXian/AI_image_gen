@@ -7,10 +7,8 @@ import re
 import traceback
 from PIL import Image, ImageDraw,ImageFont
 from .import limit, db
-from .youdao import tag_trans
-from .baidu import tag_baiduTrans
 from .config import get_config, get_group_config
-from hoshino.modules.AI_image_gen import youdao
+from .translator_lite.apis import baidu, youdao
 
 
 path_ = Path(__file__).parent # 获取文件所在目录的绝对路径
@@ -45,7 +43,7 @@ async def process_tags(gid,uid,tags,add_db=True,arrange_tags=True):
         if baidu_trans == True:
             try:
                 msg = re.split("([&])", tags ,1)
-                msg[0] = await tag_baiduTrans(msg[0]) # 百度翻译
+                msg[0] = baidu(msg[0]) # 百度翻译
                 tags = "".join(msg)
             except Exception as e:
                 error_msg = "翻译失败"
@@ -53,7 +51,7 @@ async def process_tags(gid,uid,tags,add_db=True,arrange_tags=True):
         elif youdao_trans == True:
             try:
                 msg = re.split("([&])", tags ,1)
-                msg[0] = await tag_trans(msg[0]) # 有道翻译
+                msg[0] = youdao(msg[0]) # 有道翻译
                 tags = "".join(msg)
             except Exception as e:
                 error_msg = "翻译失败"
