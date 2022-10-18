@@ -12,7 +12,12 @@
 
 - **2022-10-15版本更新后，新增了依赖pathlib和retrying，如出现报错请在插件目录下运行powershell输入`pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple`来安装新增的依赖**
 
-- **2022-10-18版本更新的无需api的翻译功能，目前因无法实现异步请求，大段文字提交会导致bot卡死问题，所以已经切换默认分支至本分支继续使用翻译api接入。**
+- **2022-10-18版本更新的无需api的翻译功能，目前因无法实现异步请求，大段文字提交会导致bot卡死问题，所以已经切换默认分支至本分支继续使用翻译api接入。由于默认分支的更改，更新前需删除旧仓库，重新进行克隆，否则无法正常更新（注意删除前先将`SaveImage`文件夹和`config.json`文件备份好，若不慎删除出现找不到图片路径的报错，请一并删除 `根目录\.hoshino\AI_image_pic.db` 文件来解决报错问题）**
+
+  ```
+  # 在...HoshinoBot\hoshino\modules目录下删除旧AI_image_gen目录重新克隆该仓库：
+  git clone https://github.com/CYDXDianXian/AI_image_gen.git
+  ```
 
 ## 特点
 
