@@ -360,6 +360,7 @@ async def generate_tags(bot, ev):
         await bot.send(ev, MessageSegment.reply(ev.message_id) + MessageSegment.image(image_to_base64(text_to_image(msg))))
     else:
         await bot.send(ev, '生成失败，肯定不是bot的错！', at_sender=True)
+        traceback.print_exc()
 
     
 @sv.on_fullmatch(('本群XP排行', '本群xp排行'))

@@ -12,6 +12,8 @@
 
 - **2022-10-15版本更新后，新增了依赖pathlib和retrying，如出现报错请在插件目录下运行powershell输入`pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple`来安装新增的依赖**
 
+- **2022-10-18版本更新的无需api的翻译功能，目前因无法实现异步请求，大段文字提交会导致bot卡死问题，所以已经切换默认分支至本分支继续使用翻译api接入。**
+
 ## 特点
 
 - [x] 根据tag绘制图片，根据tag+图片绘制图片
@@ -35,7 +37,7 @@
 1. 在`...HoshinoBot\hoshino\modules`目录下克隆该仓库：
 
    ```
-   git https://github.com/CYDXDianXian/AI_image_gen.git
+   git clone https://github.com/CYDXDianXian/AI_image_gen.git
    ```
 
 2. 将本插件目录下的配置文件模板 `config.template.json` 复制并重命名为 `config.json` ,并进行如下设置：
