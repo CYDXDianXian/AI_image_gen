@@ -14,15 +14,11 @@ def generate_code(code_len=6):
     return code
 
 
-async def fetch_data(_hash, max_retry_num=5):
+async def fetch_data(_hash):
     url_status = 'https://hf.space/embed/hysts/DeepDanbooru/api/queue/status/'
     resj = await (await aiorequests.post(url_status, json={'hash': _hash})).json()
-    retrying = 0
     while True:
-        if retrying >= max_retry_num:
-            return None
         if resj['status'] == 'PENDING':
-            retrying += 1
             continue
         elif resj['status'] == 'COMPLETE':
             return resj['data']['data'][0]['confidences']
