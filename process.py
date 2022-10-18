@@ -43,7 +43,7 @@ async def process_tags(gid,uid,tags,add_db=True,arrange_tags=True):
         if baidu_trans == True:
             try:
                 msg = re.split("([&])", tags ,1)
-                msg[0] = await baidu(msg[0]) # 百度翻译
+                msg[0] = baidu(msg[0]) # 百度翻译
                 tags = "".join(msg)
             except Exception as e:
                 error_msg = "翻译失败"
@@ -51,7 +51,7 @@ async def process_tags(gid,uid,tags,add_db=True,arrange_tags=True):
         elif youdao_trans == True:
             try:
                 msg = re.split("([&])", tags ,1)
-                msg[0] = await youdao(msg[0]) # 有道翻译
+                msg[0] = youdao(msg[0]) # 有道翻译
                 tags = "".join(msg)
             except Exception as e:
                 error_msg = "翻译失败"
