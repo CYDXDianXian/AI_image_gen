@@ -9,13 +9,12 @@
 ## 注意事项
 
 - **2022-10-14版本更新后，旧配置文件`config.json`与新版无法兼容，请备份好个人api和token数据后删除`config.json`文件，再使用`git pull`命令从仓库拉取更新，获取配置文件模板`config_example.json`后按文档后面提到的配置方法进行操作。若您在使用过程中发生报错，请检查配置文件是否已更新**
-
-- **2022-10-15版本更新后，新增了依赖pathlib和retrying，如出现报错请在插件目录下运行powershell输入`pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple`来安装新增的依赖**
+- **2022-10-18版本更新后，新增了依赖并移除百度和有道api配置项，如出现报错请在插件目录下运行powershell输入`pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple`来安装新增的依赖并重设配置文件**
 
 ## 特点
 
 - [x] 根据tag绘制图片，根据tag+图片绘制图片
-- [x] 接入有道翻译api和百度翻译api，可自动将中文tag翻译为英文
+- [x] 接入有道翻译和百度翻译，可自动将中文tag翻译为英文
 - [x] 上传AI生成的图片及其配方
 - [x] 查看个人/本群/全部群图片
 - [x] 查看已上传图片的配方
@@ -179,6 +178,8 @@
 [ai绘图安全版](https://github.com/jiyemengmei/AI_Draw_safemode)
 
 ## 更新日志
+
+2022-10-19：移除百度和有道api，无需申请api便可使用百度和有道翻译
 
 2022-10-16：新增回复消息以图绘图、上传图片、生成tags功能
 
