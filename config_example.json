@@ -17,10 +17,16 @@
         "token": ""
     },
     "baidu": {
-        "baidu_trans": true
+        "baidu_trans": true,
+        "baidu_api": "https://fanyi-api.baidu.com/api/trans/vip/translate",
+        "baidu_appid": "",
+        "baidu_key": ""
     },
     "youdao": {
-        "youdao_trans": false
+        "youdao_trans": false,
+        "youdao_api": "https://openapi.youdao.com/api",
+        "app_id": "",
+        "app_key": ""
     },
     "default_tags": {
         "tags": "miku"

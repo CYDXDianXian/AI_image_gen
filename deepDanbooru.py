@@ -1,6 +1,10 @@
+import asyncio
 import io
+import json
 import base64
 import random
+import aiohttp
+from PIL import Image
 from hoshino import aiorequests
 
 
