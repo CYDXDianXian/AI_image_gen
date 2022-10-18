@@ -1,0 +1,3 @@
+[submodule "translator_lite"]
+	path = translator_lite
+	url = https://github.com/azmiao/translator_lite.git
