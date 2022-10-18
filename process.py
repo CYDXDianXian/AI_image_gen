@@ -14,6 +14,12 @@ from .translator_lite.apis import baidu, youdao
 path_ = Path(__file__).parent # 获取文件所在目录的绝对路径
 font_path = str(path_ / 'fonts' / 'SourceHanSansCN-Medium.otf') # 字体路径。Path是路径对象，必须转为str之后ImageFont才能读取
 
+def isContainChinese(s):
+    for c in s:
+        if ('\u4e00' <= c <= '\u9fa5'):
+            return True
+    return False
+
 async def process_tags(gid,uid,tags,add_db=True,arrange_tags=True):
     '''
     录入数据库，翻译，过滤屏蔽词
@@ -41,21 +47,23 @@ async def process_tags(gid,uid,tags,add_db=True,arrange_tags=True):
             traceback.print_exc()
     if trans == True:
         if baidu_trans == True:
-            try:
-                msg = re.split("([&])", tags ,1)
-                msg[0] = baidu(msg[0]) # 百度翻译
-                tags = "".join(msg)
-            except Exception as e:
-                error_msg = "翻译失败"
-                traceback.print_exc()
+            if(isContainChinese(tags)): # 检查是否是中文
+                try:
+                    msg = re.split("([&])", tags ,1)
+                    msg[0] = baidu(msg[0]) # 百度翻译
+                    tags = "".join(msg)
+                except Exception as e:
+                    error_msg = "翻译失败"
+                    traceback.print_exc()
         elif youdao_trans == True:
-            try:
-                msg = re.split("([&])", tags ,1)
-                msg[0] = youdao(msg[0]) # 有道翻译
-                tags = "".join(msg)
-            except Exception as e:
-                error_msg = "翻译失败"
-                traceback.print_exc()
+            if(isContainChinese(tags)): # 检查是否是中文
+                try:
+                    msg = re.split("([&])", tags ,1)
+                    msg[0] = youdao(msg[0]) # 有道翻译
+                    tags = "".join(msg)
+                except Exception as e:
+                    error_msg = "翻译失败"
+                    traceback.print_exc()
         else:
             error_msg = "翻译失败，百度翻译和有道翻译服务均未开启，请开启服务后重试"
     if limit_word == True:

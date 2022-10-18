@@ -17,10 +17,10 @@
         "token": ""
     },
     "baidu": {
-        "baidu_trans": true
+        "baidu_trans": false
     },
     "youdao": {
-        "youdao_trans": false
+        "youdao_trans": true
     },
     "default_tags": {
         "tags": "miku"
