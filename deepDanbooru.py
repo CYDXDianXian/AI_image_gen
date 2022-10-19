@@ -1,3 +1,4 @@
+import asyncio
 import io
 import base64
 import random
@@ -14,7 +15,7 @@ def generate_code(code_len=6):
     return code
 
 
-async def fetch_data(_hash, max_retry_num=5):
+async def fetch_data(_hash, max_retry_num=15):
     url_status = 'https://hf.space/embed/hysts/DeepDanbooru/api/queue/status/'
     resj = await (await aiorequests.post(url_status, json={'hash': _hash})).json()
     retrying = 0
@@ -23,6 +24,7 @@ async def fetch_data(_hash, max_retry_num=5):
             return None
         if resj['status'] == 'PENDING':
             retrying += 1
+            await asyncio.sleep(1)
             continue
         elif resj['status'] == 'COMPLETE':
             return resj['data']['data'][0]['confidences']

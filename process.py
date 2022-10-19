@@ -10,7 +10,6 @@ from .import limit, db
 from .youdao import tag_trans
 from .baidu import tag_baiduTrans
 from .config import get_config, get_group_config
-from hoshino.modules.AI_image_gen import youdao
 
 
 path_ = Path(__file__).parent # 获取文件所在目录的绝对路径

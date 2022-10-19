@@ -36,6 +36,9 @@
 - [x] 可屏蔽群人数超过一定数量的大群
 - [x] 可自行设置屏蔽词，屏蔽某些tag后会使bot出图更加安全健康，tag会自动转为小写
 - [x] 图片鉴赏功能
+- [x] 转发消息模式
+- [x] 自动撤回
+- [x] 回复消息进行以图绘图、图片上传、图片鉴赏
 
 ## 配置方法
 
@@ -63,41 +66,53 @@
 
    ```python
    {
-    "base": {
-        "daily_max": 20,  # 每日上限次数
-        "freq_limit": 60,  # 频率限制
-        "whitelistmode": False,  # 白名单模式开关
-        "blacklistmode": True,  # 黑名单模式开关
-        "ban_if_group_num_over": 1000,  # 屏蔽群人数超过1000人的群
-    },
-    "default": {
-        "arrange_tags": True,  # 是否开启tags整理（默认开启，暂时无法关闭）
-        "add_db": True,  # 是否开启数据录入（默认开启，暂时无法关闭）
-        "trans": True,  # 是否开启翻译
-        "limit_word": True  # 是否开启违禁词过滤
-    },
-    "NovelAI": {
-        "api": "",  # 设置api，例如："http://11.222.333.444:5555/"
-        "token": ""  # 设置你的token，例如："ADGdsvSFGsaA5S2D"，（若你的api无需使用token，留空即可）
-    },
-    "baidu": {
-        "baidu_trans": True,  # 百度翻译开关
-        "baidu_api": "https://fanyi-api.baidu.com/api/trans/vip/translate",  # 百度api地址
-        "baidu_appid": "",  # 自己的百度翻译APP ID
-        "baidu_key": ""  # 自己的百度翻译密钥
-    },
-    "youdao": {
-        "youdao_trans": False,  # 有道翻译开关
-        "youdao_api": "https://openapi.youdao.com/api",  # 有道api地址
-        "app_id": "",  # 自己的有道智云应用id
-        "app_key": ""  # 自己的有道智云应用秘钥
-    },
-    "default_tags": {
-        "tags": "miku"  # 如果没有指定tag的话，默认的tag
-    },
-    "ban_word": {
-        "wordlist": ["r18", "naked", "vagina", "penis", "nsfw", "genital", "nude", "&r18=1", "nipple"]
-    } # 屏蔽词列表
+       "base": {
+           "daily_max": 20,  # 每日上限次数
+           "freq_limit": 60,  # 频率限制
+           "whitelistmode": False,  # 白名单模式开关
+           "blacklistmode": True,  # 黑名单模式开关
+           "ban_if_group_num_over": 1000,  # 屏蔽群人数超过1000人的群
+           "enable_forward_msg": True  # 是否开启转发消息模式
+       },
+       "default": {
+           "withdraw": 120,  # 撤回时间，单位秒
+           "arrange_tags": True,  # 是否开启tags整理（默认开启，暂时无法关闭）
+           "add_db": True,  # 是否开启数据录入（默认开启，暂时无法关闭）
+           "trans": True,  # 是否开启翻译
+           "limit_word": True  # 是否开启违禁词过滤
+       },
+       "NovelAI": {
+           "api": "",  # 设置api，例如："http://11.222.333.444:5555/"
+           "token": ""  # 设置你的token，例如："ADGdsvSFGsaA5S2D"，（若你的api无需使用token，留空即可）
+       },
+       "baidu": {
+           "baidu_trans": True,  # 百度翻译开关
+           "baidu_api": "https://fanyi-api.baidu.com/api/trans/vip/translate",  # 百度api地址
+           "baidu_appid": "",  # 自己的百度翻译APP ID
+           "baidu_key": ""  # 自己的百度翻译密钥
+       },
+       "youdao": {
+           "youdao_trans": False,  # 有道翻译开关
+           "youdao_api": "https://openapi.youdao.com/api",  # 有道api地址
+           "app_id": "",  # 自己的有道智云应用id
+           "app_key": ""  # 自己的有道智云应用秘钥
+       },
+       "default_tags": {
+           "tags": "miku"  # 如果没有指定tag的话，默认的tag
+       },
+       "ban_word": {
+           "wordlist": [
+               "r18",
+               "naked",
+               "vagina",
+               "penis",
+               "nsfw",
+               "genital",
+               "nude",
+               "NSFW",
+               "R18"
+           ]
+       },  # 屏蔽词列表
    }
    ```
 
@@ -182,7 +197,8 @@
 
 ![image](https://user-images.githubusercontent.com/71607036/195219976-a4a9d82b-a1d5-4ff9-912a-9ea808d90a75.png)
 
-![image](https://user-images.githubusercontent.com/71607036/195997014-3344cfa8-9568-4374-b64e-04e8bf2316e0.png)
+![image](https://user-images.githubusercontent.com/71607036/196759011-cf5e6782-1a65-4e8c-9801-2bb2465bd9a1.png)
+![image](https://user-images.githubusercontent.com/71607036/196759036-59b3151a-af47-4209-b7c3-c661fc05d661.png)
 
 ## 鸣谢
 
@@ -197,6 +213,8 @@
 [ai绘图安全版](https://github.com/jiyemengmei/AI_Draw_safemode)
 
 ## 更新日志
+
+2022-10-20：新增转发消息模式；新增自动撤回消息功能；图片鉴赏直接生成文字版tags，方便复制；修复回复上传、回复以图绘图、回复图片鉴赏的bug
 
 2022-10-16：新增回复消息以图绘图、上传图片、生成tags功能
 
