@@ -3,6 +3,7 @@ import os
 from pathlib import Path
 import traceback
 import hoshino
+from hoshino import R
 from . import db
 from .packedfiles import default_config
 from .deepDanbooru import get_tags
@@ -62,7 +63,7 @@ config_default = default_config.config_default
 group_list_default = default_config.group_list_default
 groupconfig_default = default_config.groupconfig_default
 
-save_image_path = Path(__file__).parent / "SaveImage" # 保存图片路径
+save_image_path = Path(R.img('AI_setu').path) # 图片保存在res/img/AI_setu目录下
 Path(save_image_path).mkdir(parents = True, exist_ok = True) # 创建路径
 
 # Check config if exist

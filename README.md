@@ -18,6 +18,8 @@
   # 在...HoshinoBot\hoshino\modules目录下删除旧AI_image_gen目录重新克隆该仓库：
   git clone https://github.com/CYDXDianXian/AI_image_gen.git
   ```
+  
+- **2022-10-20版本开始，新上传图片的保存路径移至Hoshinobot资源目录下：`...HoshinoBot\res\img\AI_setu`**
 
 ## 特点
 
