@@ -75,7 +75,7 @@
            "enable_forward_msg": True  # 是否开启转发消息模式
        },
        "default": {
-           "withdraw": 120,  # 撤回时间，单位秒
+           "withdraw": 120,  # 撤回时间，单位秒。设置为0即为不撤回
            "arrange_tags": True,  # 是否开启tags整理（默认开启，暂时无法关闭）
            "add_db": True,  # 是否开启数据录入（默认开启，暂时无法关闭）
            "trans": True,  # 是否开启翻译
