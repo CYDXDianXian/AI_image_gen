@@ -31,6 +31,8 @@ sv_help = '''
 [删除pic/删除图片+图片ID] 删除对应图片和配方(仅限维护组使用)
 [本群/个人XP排行] 本群/个人的tag使用频率
 [本群/个人XP缝合] 缝合tags进行绘图
+[图片鉴赏/生成tag+图片] 根据上传的图片生成tags
+[回复消息+以图绘图/上传图片/图片鉴赏] 回复消息用以绘图，上传，生成tags功能
 
 以下为维护组使用(空格不能漏)：
 [绘图 状态 <群号>] 查看本群或指定群的模块开启状态
@@ -190,7 +192,8 @@ async def send_config(bot, ev):
         elif args[1] in ["删除", "移除"]:
             mode = 1
         else:
-            await bot.finish(ev, "操作错误，应为新增/删除其一")
+            await bot.send(ev, "操作错误，应为新增/删除其一")
+            return
         group_id = args[2]
         statuscode, failedgid = set_group_list(group_id, 1, mode)
         if statuscode == 403:
@@ -207,7 +210,8 @@ async def send_config(bot, ev):
         elif args[1] in ["删除", "移除"]:
             mode = 1
         else:
-            await bot.finish(ev, "操作错误，应为新增/删除其一")
+            await bot.send(ev, "操作错误，应为新增/删除其一")
+            return
         group_id = args[2]
         statuscode, failedgid = set_group_list(group_id, 0, mode)
         if statuscode == 403:
@@ -224,7 +228,8 @@ async def send_config(bot, ev):
         elif args[1] in ["删除", "移除"]:
             mode = 1
         else:
-            await bot.finish(ev, "操作错误，应为新增/删除其一")
+            await bot.send(ev, "操作错误，应为新增/删除其一")
+            return
         group_id = args[2]
         statuscode, failedgid = set_group_list(group_id, 0, mode)
         if statuscode == 403:
@@ -326,9 +331,11 @@ async def gen_pic_from_pic(bot, ev: CQEvent):
     try:
         image, _, _ = await get_image_and_msg(bot, ev)
         if tags == "":
-            await bot.finish(ev, '以图绘图必须添加tag')
+            await bot.send(ev, '以图绘图必须添加tag')
+            return
         elif image is None:
-            await bot.finish(ev, '请输入需要绘图的图片')
+            await bot.send(ev, '请输入需要绘图的图片')
+            return
         await bot.send(ev, f"正在生成，请稍后...\n(今日剩余{get_config('base', 'daily_max') - tlmt.get_num(uid)}次)", at_sender=True)
         post_url = img2img_url + (f"?tags={tags}" if tags != "" else "") + token
         image = image.convert('RGB')
@@ -379,7 +386,8 @@ async def generate_tags(bot, ev):
 
     image, _, _ = await get_image_and_msg(bot, ev)
     if not image:
-        await bot.finish(ev, '请输入需要分析的图片', at_sender=True)
+        await bot.send(ev, '请输入需要分析的图片', at_sender=True)
+        return
     await bot.send(ev, f"正在生成tags，请稍后...")
     json_tags = await get_tags(image)
 
@@ -464,10 +472,12 @@ async def get_group_xp_pic(bot, ev):
             response = await aiorequests.get(url, timeout = 30)
             data = await response.content
         except Exception as e:
-            await bot.finish(ev, f"请求超时~", at_sender=True)
+            await bot.send(ev, f"请求超时~", at_sender=True)
+            return
         msg,imgmes,error_msg = process_img(data)
         if len(error_msg):
-            await bot.finish(ev, f"已报错：{error_msg}", at_sender=True)
+            await bot.send(ev, f"已报错：{error_msg}", at_sender=True)
+            return
         resultmes = f"[CQ:image,file={imgmes}]"
         resultmes += msg
         resultmes += f"\n tags:{tags}"
@@ -523,10 +533,12 @@ async def get_personal_xp_pic(bot, ev):
             response = await aiorequests.get(url, timeout = 30)
             data = await response.content
         except Exception as e:
-            await bot.finish(ev, f"请求超时~", at_sender=True)
+            await bot.send(ev, f"请求超时~", at_sender=True)
+            return
         msg,imgmes,error_msg = process_img(data)
         if len(error_msg):
-            await bot.finish(ev, f"已报错：{error_msg}", at_sender=True)
+            await bot.send(ev, f"已报错：{error_msg}", at_sender=True)
+            return
         resultmes = f"[CQ:image,file={imgmes}]"
         resultmes += msg
         resultmes += f"\n tags:{tags}"
@@ -564,14 +576,16 @@ async def upload_header(bot, ev):
         img.save(str(pic_dir)) # 保存图片到本地
     except:
         traceback.print_exc()
-        await bot.finish(ev, '保存图片出错', at_sender=True)
+        await bot.send(ev, '保存图片出错', at_sender=True)
+        return
     try:
         seed=(str(msg).split(f"scale:")[0]).split('seed:')[1].strip()
         scale=(str(msg).split(f"tags:")[0]).split('scale:')[1].strip()
         tags=(str(msg).split(f"tags:")[1])
         pic_msg = tags + f"&seed={seed}" + f"&scale={scale}"
     except:
-        await bot.finish(ev, '格式出错', at_sender=True)
+        await bot.send(ev, '格式出错', at_sender=True)
+        return
     try:
         db.add_pic(ev.group_id, ev.user_id, pic_hash, str(pic_dir), pic_msg)
         await bot.send(ev, f'上传成功！已成功保存图片和配方', at_sender=True)
@@ -591,7 +605,8 @@ async def check_personal_pic(bot, ev):
     msglist = db.get_pic_list_group(num)
     msglist = db.get_pic_list_personal(uid,num)
     if not len(msglist):
-        await bot.finish(ev, '无法找到个人图片信息', at_sender=True)
+        await bot.send(ev, '无法找到个人图片信息', at_sender=True)
+        return
     resultmes = img_make(msglist,page)
     await bot.send(ev, f"您正在查看个人的第【{page}】页图片{resultmes}", at_sender=True)
 
@@ -606,7 +621,8 @@ async def check_group_pic(bot, ev):
     num = page*8
     msglist = db.get_pic_list_group(gid,num)
     if not len(msglist):
-        await bot.finish(ev, '无法找到本群图片信息', at_sender=True)
+        await bot.send(ev, '无法找到本群图片信息', at_sender=True)
+        return
     resultmes = img_make(msglist,page)
     await bot.send(ev, f"您正在查看本群的第【{page}】页图片{resultmes}", at_sender=True)
     
@@ -620,7 +636,8 @@ async def check_all_pic(bot, ev):
     msglist = db.get_pic_list_all(num)
     #msg = f"页数{page} 数据{len(msglist)}"
     if not len(msglist):
-        await bot.finish(ev, '无法找到图片信息', at_sender=True)
+        await bot.send(ev, '无法找到图片信息', at_sender=True)
+        return
     resultmes = img_make(msglist,page)
     await bot.send(ev, f"您正在查看全部群的第【{page}】页图片{resultmes}", at_sender=True)
     #await bot.send(ev, msg, at_sender=True)
@@ -641,7 +658,8 @@ async def del_img(bot, ev):
         uid = ev.user_id
         if not priv.check_priv(ev,priv.SUPERUSER):
             msg = "只有超管才能删除"
-            await bot.finish(ev, msg, at_sender=True)
+            await bot.send(ev, msg, at_sender=True)
+            return
         id = ev.message.extract_plain_text().strip()
         if not id.isdigit() and '*' not in id:
             await bot.send(ev, '图片ID呢???')
@@ -688,10 +706,12 @@ async def quick_img(bot, ev):
             response = await aiorequests.get(url, timeout = 30)
             data = await response.content
         except Exception as e:
-            await bot.finish(ev, f"请求超时~", at_sender=True)
+            await bot.send(ev, f"请求超时~", at_sender=True)
+            return
         msg,imgmes,error_msg = process_img(data)
         if len(error_msg):
-            await bot.finish(ev, f"已报错：{error_msg}", at_sender=True)
+            await bot.send(ev, f"已报错：{error_msg}", at_sender=True)
+            return
         resultmes = f"[CQ:image,file={imgmes}]"
         resultmes += msg
         resultmes += f"\n tags:{tags}"
