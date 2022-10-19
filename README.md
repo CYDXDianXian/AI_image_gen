@@ -11,6 +11,13 @@
 - **2022-10-14版本更新后，旧配置文件`config.json`与新版无法兼容，请备份好个人api和token数据后删除`config.json`文件，再使用`git pull`命令从仓库拉取更新，获取配置文件模板`config_example.json`后按文档后面提到的配置方法进行操作。若您在使用过程中发生报错，请检查配置文件是否已更新**
 - **2022-10-18版本更新后，新增了依赖并移除百度和有道api配置项，如出现报错请在插件目录下运行powershell输入`pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple`来安装新增的依赖并重设配置文件**
 
+- **2022-10-18版本更新的无需api的翻译功能，目前因无法实现异步请求，大段文字提交会导致bot卡死问题，所以本仓库已经回档，继续使用翻译api接入。若更新遇到问题，请删除AI_image_gen目录后重新克隆仓库（注意删除前先将`SaveImage`文件夹和`config.json`文件备份好，若不慎删除出现找不到图片路径的报错，请一并删除 `根目录\.hoshino\AI_image_pic.db` 文件来解决报错问题）**
+
+  ```
+  # 在...HoshinoBot\hoshino\modules目录下删除旧AI_image_gen目录重新克隆该仓库：
+  git clone https://github.com/CYDXDianXian/AI_image_gen.git
+  ```
+
 ## 特点
 
 - [x] 根据tag绘制图片，根据tag+图片绘制图片
@@ -35,14 +42,8 @@
 1. 在`...HoshinoBot\hoshino\modules`目录下克隆该仓库：
 
    ```
-   git https://github.com/CYDXDianXian/AI_image_gen.git
+   git clone https://github.com/CYDXDianXian/AI_image_gen.git
    ```
-
-2. 在插件目录里更新翻译模块
-
-    ```
-    git submodule update
-    ```
 
 2. 将本插件目录下的配置文件模板 `config.template.json` 复制并重命名为 `config.json` ,并进行如下设置：
 
@@ -53,8 +54,12 @@
 
    - 在`api`中填写IP地址
    - 在`token`中填写你的token
+   - 在`baidu_appid`中填写自己的[百度翻译](https://api.fanyi.baidu.com/)APP ID
+   - 在`baidu_key`填写自己的[百度翻译](https://api.fanyi.baidu.com/)密钥
+   - 在`app_id`中填写自己的[有道智云](https://ai.youdao.com/)应用id
+   - 在`app_key`中填写自己的[有道智云](https://ai.youdao.com/)应用秘钥
 
-   百度翻译与有道翻译二选一即可，不用的翻译可以关掉。（建议使用百度翻译，对二次元词汇翻译效果较好）
+   百度翻译与有道翻译二选一即可，不用的翻译可以关掉。（建议使用百度翻译，对二次元词汇翻译效果较好，如何获取API请翻阅文档后半部分的**API说明**）
 
    ```python
    {
@@ -77,9 +82,15 @@
     },
     "baidu": {
         "baidu_trans": True,  # 百度翻译开关
+        "baidu_api": "https://fanyi-api.baidu.com/api/trans/vip/translate",  # 百度api地址
+        "baidu_appid": "",  # 自己的百度翻译APP ID
+        "baidu_key": ""  # 自己的百度翻译密钥
     },
     "youdao": {
         "youdao_trans": False,  # 有道翻译开关
+        "youdao_api": "https://openapi.youdao.com/api",  # 有道api地址
+        "app_id": "",  # 自己的有道智云应用id
+        "app_key": ""  # 自己的有道智云应用秘钥
     },
     "default_tags": {
         "tags": "miku"  # 如果没有指定tag的话，默认的tag
@@ -145,6 +156,13 @@
 ## API说明
 
 - 目前可用的NovelAI-API：[路路佬的API](http://91.216.169.75:5010/token)
+- 有道翻译API：请访问[有道智云](https://ai.youdao.com/)注册账号，在控制台中以API接入方式创建一个文本翻译应用，查看应用即可获取有道应用ID和应用秘钥，然后将其填写至配置文件即可使用有道翻译服务
+- **如何使用百度翻译API？**（目前来看百度翻译二次元词汇比有道效果好一点）
+  1. 使用您的百度账号登录[百度翻译开放平台](http://api.fanyi.baidu.com/)
+  2. 注册成为开发者，获得 APPID
+  3. 进行开发者认证（如仅需标准版可跳过）【仅需实名注册一下就可以使用高级版，建议认证。高级版免费调用量为100万字符/月】
+  4. 开通通用翻译API服务：[开通链接](https://fanyi-api.baidu.com/choose)
+  5. 在管理控制台中查看APP ID与密钥，将其填入配置文件对应的位置
 
 ## 使用效果预览
 

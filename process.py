@@ -7,18 +7,14 @@ import re
 import traceback
 from PIL import Image, ImageDraw,ImageFont
 from .import limit, db
+from .youdao import tag_trans
+from .baidu import tag_baiduTrans
 from .config import get_config, get_group_config
-from .translator_lite.apis import baidu, youdao
+from hoshino.modules.AI_image_gen import youdao
 
 
 path_ = Path(__file__).parent # 获取文件所在目录的绝对路径
 font_path = str(path_ / 'fonts' / 'SourceHanSansCN-Medium.otf') # 字体路径。Path是路径对象，必须转为str之后ImageFont才能读取
-
-def isContainChinese(s):
-    for c in s:
-        if ('\u4e00' <= c <= '\u9fa5'):
-            return True
-    return False
 
 async def process_tags(gid,uid,tags,add_db=True,arrange_tags=True):
     '''
@@ -47,23 +43,21 @@ async def process_tags(gid,uid,tags,add_db=True,arrange_tags=True):
             traceback.print_exc()
     if trans == True:
         if baidu_trans == True:
-            if(isContainChinese(tags)): # 检查是否是中文
-                try:
-                    msg = re.split("([&])", tags ,1)
-                    msg[0] = baidu(msg[0]) # 百度翻译
-                    tags = "".join(msg)
-                except Exception as e:
-                    error_msg = "翻译失败"
-                    traceback.print_exc()
+            try:
+                msg = re.split("([&])", tags ,1)
+                msg[0] = await tag_baiduTrans(msg[0]) # 百度翻译
+                tags = "".join(msg)
+            except Exception as e:
+                error_msg = "翻译失败"
+                traceback.print_exc()
         elif youdao_trans == True:
-            if(isContainChinese(tags)): # 检查是否是中文
-                try:
-                    msg = re.split("([&])", tags ,1)
-                    msg[0] = youdao(msg[0]) # 有道翻译
-                    tags = "".join(msg)
-                except Exception as e:
-                    error_msg = "翻译失败"
-                    traceback.print_exc()
+            try:
+                msg = re.split("([&])", tags ,1)
+                msg[0] = await tag_trans(msg[0]) # 有道翻译
+                tags = "".join(msg)
+            except Exception as e:
+                error_msg = "翻译失败"
+                traceback.print_exc()
         else:
             error_msg = "翻译失败，百度翻译和有道翻译服务均未开启，请开启服务后重试"
     if limit_word == True:
