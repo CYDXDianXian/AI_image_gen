@@ -170,7 +170,7 @@
 
 ## API说明
 
-- 目前可用的NovelAI-API：[路路佬的API](http://91.216.169.75:5010/token)
+- 目前可用的NovelAI-API：[路路佬的API](https://lulu.uedbq.xyz/token)
 - 有道翻译API：请访问[有道智云](https://ai.youdao.com/)注册账号，在控制台中以API接入方式创建一个文本翻译应用，查看应用即可获取有道应用ID和应用秘钥，然后将其填写至配置文件即可使用有道翻译服务
 - **如何使用百度翻译API？**（目前来看百度翻译二次元词汇比有道效果好一点）
   1. 使用您的百度账号登录[百度翻译开放平台](http://api.fanyi.baidu.com/)
