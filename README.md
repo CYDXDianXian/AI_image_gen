@@ -8,11 +8,11 @@
 
 ## 注意事项
 
-- **2022-10-14版本更新后，旧配置文件`config.json`与新版无法兼容，请备份好个人api和token数据后删除`config.json`文件，再使用`git pull`命令从仓库拉取更新，获取配置文件模板`config_example.json`后按文档后面提到的配置方法进行操作。若您在使用过程中发生报错，请检查配置文件是否已更新**
+- **2022-10-20版本更新后，旧配置文件`config.json`与新版无法兼容，请备份好个人api和token数据后删除`config.json`文件，再使用`git pull`命令从仓库拉取更新，获取配置文件模板`config_example.json`后按文档后面提到的配置方法进行操作。若您在使用过程中发生报错，请检查配置文件是否已更新**
 
-- **2022-10-15版本更新后，新增了依赖pathlib和retrying，如出现报错请在插件目录下运行powershell输入`pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple`来安装新增的依赖**
+- **若出现 `ImportError: No module named xxx` 报错，请重装依赖：在插件目录下运行powershell输入`pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple`**
 
-- **2022-10-18版本更新的无需api的翻译功能，目前因无法实现异步请求，大段文字提交会导致bot卡死问题，所以本仓库已经回档，继续使用翻译api接入。若更新遇到问题，请删除AI_image_gen目录后重新克隆仓库（注意删除前先将`SaveImage`文件夹和`config.json`文件备份好，若不慎删除出现找不到图片路径的报错，请一并删除 `~\.hoshino\AI_image_pic.db` 文件来解决报错问题）**
+- **若仓库更新遇到问题，请删除AI_image_gen目录后重新克隆仓库（注意删除前先将`SaveImage`文件夹和`config.json`文件备份好，若不慎删除出现找不到图片路径的报错，请一并删除 `~\.hoshino\AI_image_pic.db` 文件来解决报错问题）：**
 
   ```
   # 在...HoshinoBot\hoshino\modules目录下删除旧AI_image_gen目录重新克隆该仓库：
@@ -37,7 +37,7 @@
 - [x] 可自行设置屏蔽词，屏蔽某些tag后会使bot出图更加安全健康，tag会自动转为小写
 - [x] 图片鉴赏功能
 - [x] 转发消息模式
-- [x] 自动撤回
+- [x] 自动撤回消息
 - [x] 回复消息进行以图绘图、图片上传、图片鉴赏
 
 ## 配置方法
