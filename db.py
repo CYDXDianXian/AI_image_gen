@@ -67,7 +67,7 @@ class XpCounter:
                 f"SELECT KEYWORD FROM XP_NUM WHERE GID={gid} AND UID={uid} ORDER BY NUM desc LIMIT {num}").fetchall()
         return r if r else {}
 
-def get_xp_list_group(gid,num=10):
+def get_xp_list_group(gid,num=20):
     XP = XpCounter()
     xp_list = XP._get_xp_list_group(gid, num)
     if len(xp_list)>0:
@@ -81,7 +81,7 @@ def get_xp_list_group(gid,num=10):
     else:
         return []
 
-def get_xp_list_personal(gid,uid,num=10):
+def get_xp_list_personal(gid,uid,num=20):
     XP = XpCounter()
     xp_list = XP._get_xp_list_personal(gid,uid,num)
     if len(xp_list)>0:

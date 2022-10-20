@@ -1,7 +1,9 @@
+import asyncio
 import os
 from pathlib import Path
 import traceback
 import hoshino
+from hoshino import R
 from . import db
 from .packedfiles import default_config
 from .deepDanbooru import get_tags
@@ -13,7 +15,6 @@ import json
 from hoshino import Service, aiorequests, priv
 import io
 from PIL import Image
-from io import BytesIO
 import time,calendar
 from heapq import nsmallest
 
@@ -31,6 +32,8 @@ sv_help = '''
 [删除pic/删除图片+图片ID] 删除对应图片和配方(仅限维护组使用)
 [本群/个人XP排行] 本群/个人的tag使用频率
 [本群/个人XP缝合] 缝合tags进行绘图
+[图片鉴赏/生成tag+图片] 根据上传的图片生成tags
+[回复消息+以图绘图/上传图片/图片鉴赏] 回复消息用以绘图，上传，生成tags功能
 
 以下为维护组使用(空格不能漏)：
 [绘图 状态 <群号>] 查看本群或指定群的模块开启状态
@@ -60,7 +63,7 @@ config_default = default_config.config_default
 group_list_default = default_config.group_list_default
 groupconfig_default = default_config.groupconfig_default
 
-save_image_path = Path(__file__).parent / "SaveImage" # 保存图片路径
+save_image_path = Path(R.img('AI_setu').path) # 图片保存在res/img/AI_setu目录下
 Path(save_image_path).mkdir(parents = True, exist_ok = True) # 创建路径
 
 # Check config if exist
@@ -98,6 +101,7 @@ if not os.path.exists(gpcfgpath):
 
 from .config import get_config, get_group_config, get_group_info, set_group_config, group_list_check, set_group_list, get_grouplist
 from .process import img_make, process_img, process_tags
+from .message import send_msg
 
 
 # 设置limiter
@@ -189,7 +193,8 @@ async def send_config(bot, ev):
         elif args[1] in ["删除", "移除"]:
             mode = 1
         else:
-            await bot.finish(ev, "操作错误，应为新增/删除其一")
+            await bot.send(ev, "操作错误，应为新增/删除其一")
+            return
         group_id = args[2]
         statuscode, failedgid = set_group_list(group_id, 1, mode)
         if statuscode == 403:
@@ -206,7 +211,8 @@ async def send_config(bot, ev):
         elif args[1] in ["删除", "移除"]:
             mode = 1
         else:
-            await bot.finish(ev, "操作错误，应为新增/删除其一")
+            await bot.send(ev, "操作错误，应为新增/删除其一")
+            return
         group_id = args[2]
         statuscode, failedgid = set_group_list(group_id, 0, mode)
         if statuscode == 403:
@@ -223,7 +229,8 @@ async def send_config(bot, ev):
         elif args[1] in ["删除", "移除"]:
             mode = 1
         else:
-            await bot.finish(ev, "操作错误，应为新增/删除其一")
+            await bot.send(ev, "操作错误，应为新增/删除其一")
+            return
         group_id = args[2]
         statuscode, failedgid = set_group_list(group_id, 0, mode)
         if statuscode == 403:
@@ -257,6 +264,9 @@ async def gen_pic(bot, ev: CQEvent):
 
     tags = ev.message.extract_plain_text().strip()
     tags,error_msg,tags_guolu=await process_tags(gid,uid,tags) # tags处理过程
+
+    result_list = []
+    msg_list = []
     if len(error_msg):
         await bot.send(ev, f"已报错：{error_msg}", at_sender=True)
     if len(tags_guolu):
@@ -275,9 +285,19 @@ async def gen_pic(bot, ev: CQEvent):
         mes = f"[CQ:image,file={image_b64}]\n"
         mes += f'seed:{load_data["seed"]}   '
         mes += f'scale:{load_data["scale"]}\n'
-        if len(tags) < 2000:
-            mes += f'tags:{tags}'
-        await bot.send(ev, mes, at_sender=True)
+        mes += f'tags:{tags}'
+        msg_list.append(mes)
+        result_list = await send_msg(msg_list, ev)
+        second = get_group_config(gid, "withdraw")
+        if second and second > 0:
+            await asyncio.sleep(second)
+            for result in result_list:
+                try:
+                    await bot.delete_msg(self_id=ev['self_id'], message_id=result['message_id'])
+                except:
+                    traceback.print_exc()
+                    hoshino.logger.error('[ERROR]撤回失败')
+                await asyncio.sleep(1)
     except Exception as e:
         await bot.send(ev, f"生成失败…{e}")
         return
@@ -306,12 +326,17 @@ async def gen_pic_from_pic(bot, ev: CQEvent):
     if not len(tags):
         tags = default_tags
         await bot.send(ev, f"将使用默认tag：{default_tags}", at_sender=True)
+    
+    result_list = []
+    msg_list = []
     try:
         image, _, _ = await get_image_and_msg(bot, ev)
         if tags == "":
-            await bot.finish(ev, '以图绘图必须添加tag')
+            await bot.send(ev, '以图绘图必须添加tag')
+            return
         elif image is None:
-            await bot.finish(ev, '请输入需要绘图的图片')
+            await bot.send(ev, '请输入需要绘图的图片')
+            return
         await bot.send(ev, f"正在生成，请稍后...\n(今日剩余{get_config('base', 'daily_max') - tlmt.get_num(uid)}次)", at_sender=True)
         post_url = img2img_url + (f"?tags={tags}" if tags != "" else "") + token
         image = image.convert('RGB')
@@ -331,9 +356,19 @@ async def gen_pic_from_pic(bot, ev: CQEvent):
         mes = f"[CQ:image,file={image_b64}]\n"
         mes += f'seed:{load_data["seed"]}   '
         mes += f'scale:{load_data["scale"]}\n'
-        if len(tags) < 2000:
-            mes += f'tags:{tags}'
-        await bot.send(ev, mes, at_sender=True)
+        mes += f'tags:{tags}'
+        msg_list.append(mes)
+        result_list = await send_msg(msg_list, ev)
+        second = get_group_config(gid, "withdraw")
+        if second and second > 0:
+            await asyncio.sleep(second)
+            for result in result_list:
+                try:
+                    await bot.delete_msg(self_id=ev['self_id'], message_id=result['message_id'])
+                except:
+                    traceback.print_exc()
+                    hoshino.logger.error('[ERROR]撤回失败')
+                await asyncio.sleep(1)
     except Exception as e:
         await bot.send(ev, f"生成失败…{e}")
         return
@@ -344,20 +379,27 @@ async def generate_tags(bot, ev):
     uid = ev['user_id']
     gid = ev['group_id']
 
-    num = 1
-    result, msg = check_lmt(uid, num, gid)  # 检查群权限与个人次数
-    if result != 0:
-        await bot.send(ev, msg)
-        return
+    # num = 1
+    # result, msg = check_lmt(uid, num, gid)  # 检查群权限与个人次数
+    # if result != 0:
+    #     await bot.send(ev, msg)
+    #     return
 
     image, _, _ = await get_image_and_msg(bot, ev)
     if not image:
-        await bot.finish(ev, '请输入需要分析的图片', at_sender=True)
-    await bot.send(ev, f"正在生成，请稍后...\n(今日剩余{get_config('base', 'daily_max') - tlmt.get_num(uid)}次)", at_sender=True)
+        await bot.send(ev, '请输入需要分析的图片', at_sender=True)
+        return
+    await bot.send(ev, f"正在生成tags，请稍后...")
     json_tags = await get_tags(image)
+
+    result_list = []
+    msg_list = []
     if json_tags:
-        msg = '\n'.join([f'tag{i + 1}:\t{t["label"]}\t{t["confidence"]}' for i, t in enumerate(json_tags)])
-        await bot.send(ev, MessageSegment.reply(ev.message_id) + MessageSegment.image(image_to_base64(text_to_image(msg))))
+        msg = "图片鉴赏结果为：\n"
+        msg += ','.join([f'{t["label"]}' for t in json_tags])
+        msg_list.append(msg)
+        result_list = await send_msg(msg_list, ev)
+        # await bot.send(ev, MessageSegment.reply(ev.message_id) + MessageSegment.image(image_to_base64(text_to_image(msg))))
     else:
         await bot.send(ev, '生成失败，肯定不是bot的错！', at_sender=True)
         traceback.print_exc()
@@ -372,9 +414,13 @@ async def get_group_xp(bot, ev):
         for xpinfo in xp_list:
             keyword, num = xpinfo
             msg += f'关键词：{keyword}；次数：{num}\n'
+        result_list = []
+        msg_list = []
+        msg_list.append(msg)
+        result_list = await send_msg(msg_list, ev)
     else:
         msg += '暂无本群的XP信息'
-    await bot.send(ev, msg)
+        await bot.send(ev, msg)
 
 @sv.on_fullmatch(('个人XP排行', '个人xp排行'))
 async def get_personal_xp(bot, ev):
@@ -386,9 +432,13 @@ async def get_personal_xp(bot, ev):
         for xpinfo in xp_list:
             keyword, num = xpinfo
             msg += f'关键词：{keyword}；次数：{num}\n'
+        result_list = []
+        msg_list = []
+        msg_list.append(msg)
+        result_list = await send_msg(msg_list, ev)
     else:
         msg += '暂无你在本群的XP信息'
-    await bot.send(ev, msg)
+        await bot.send(ev, msg)
 
 @sv.on_fullmatch(('本群XP缝合', '本群xp缝合'))
 async def get_group_xp_pic(bot, ev):
@@ -423,16 +473,33 @@ async def get_group_xp_pic(bot, ev):
             response = await aiorequests.get(url, timeout = 30)
             data = await response.content
         except Exception as e:
-            await bot.finish(ev, f"请求超时~", at_sender=True)
+            await bot.send(ev, f"请求超时~", at_sender=True)
+            return
         msg,imgmes,error_msg = process_img(data)
         if len(error_msg):
-            await bot.finish(ev, f"已报错：{error_msg}", at_sender=True)
+            await bot.send(ev, f"已报错：{error_msg}", at_sender=True)
+            return
         resultmes = f"[CQ:image,file={imgmes}]"
         resultmes += msg
         resultmes += f"\n tags:{tags}"
-        await bot.send(ev, resultmes, at_sender=True)
+        
+        result_list = []
+        msg_list = []
+        msg_list.append(resultmes)
+        result_list = await send_msg(msg_list, ev)
+        second = get_group_config(gid, "withdraw")
+        if second and second > 0:
+            await asyncio.sleep(second)
+            for result in result_list:
+                try:
+                    await bot.delete_msg(self_id=ev['self_id'], message_id=result['message_id'])
+                except:
+                    traceback.print_exc()
+                    hoshino.logger.error('[ERROR]撤回失败')
+                await asyncio.sleep(1)
     else:
         msg += '暂无本群的XP信息'
+        await bot.send(ev, msg)
 
 @sv.on_fullmatch(('个人XP缝合', '个人xp缝合'))
 async def get_personal_xp_pic(bot, ev):
@@ -467,16 +534,33 @@ async def get_personal_xp_pic(bot, ev):
             response = await aiorequests.get(url, timeout = 30)
             data = await response.content
         except Exception as e:
-            await bot.finish(ev, f"请求超时~", at_sender=True)
+            await bot.send(ev, f"请求超时~", at_sender=True)
+            return
         msg,imgmes,error_msg = process_img(data)
         if len(error_msg):
-            await bot.finish(ev, f"已报错：{error_msg}", at_sender=True)
+            await bot.send(ev, f"已报错：{error_msg}", at_sender=True)
+            return
         resultmes = f"[CQ:image,file={imgmes}]"
         resultmes += msg
         resultmes += f"\n tags:{tags}"
-        await bot.send(ev, resultmes, at_sender=True)
+
+        result_list = []
+        msg_list = []
+        msg_list.append(resultmes)
+        result_list = await send_msg(msg_list, ev)
+        second = get_group_config(gid, "withdraw")
+        if second and second > 0:
+            await asyncio.sleep(second)
+            for result in result_list:
+                try:
+                    await bot.delete_msg(self_id=ev['self_id'], message_id=result['message_id'])
+                except:
+                    traceback.print_exc()
+                    hoshino.logger.error('[ERROR]撤回失败')
+                await asyncio.sleep(1)
     else:
         msg += '暂无你在本群的XP信息'
+        await bot.send(ev, msg)
 
 @sv.on_keyword(('上传pic', '上传图片'))
 async def upload_header(bot, ev):
@@ -493,14 +577,16 @@ async def upload_header(bot, ev):
         img.save(str(pic_dir)) # 保存图片到本地
     except:
         traceback.print_exc()
-        await bot.finish(ev, '保存图片出错', at_sender=True)
+        await bot.send(ev, '保存图片出错', at_sender=True)
+        return
     try:
         seed=(str(msg).split(f"scale:")[0]).split('seed:')[1].strip()
         scale=(str(msg).split(f"tags:")[0]).split('scale:')[1].strip()
         tags=(str(msg).split(f"tags:")[1])
         pic_msg = tags + f"&seed={seed}" + f"&scale={scale}"
     except:
-        await bot.finish(ev, '格式出错', at_sender=True)
+        await bot.send(ev, '格式出错', at_sender=True)
+        return
     try:
         db.add_pic(ev.group_id, ev.user_id, pic_hash, str(pic_dir), pic_msg)
         await bot.send(ev, f'上传成功！已成功保存图片和配方', at_sender=True)
@@ -520,7 +606,8 @@ async def check_personal_pic(bot, ev):
     msglist = db.get_pic_list_group(num)
     msglist = db.get_pic_list_personal(uid,num)
     if not len(msglist):
-        await bot.finish(ev, '无法找到个人图片信息', at_sender=True)
+        await bot.send(ev, '无法找到个人图片信息', at_sender=True)
+        return
     resultmes = img_make(msglist,page)
     await bot.send(ev, f"您正在查看个人的第【{page}】页图片{resultmes}", at_sender=True)
 
@@ -535,7 +622,8 @@ async def check_group_pic(bot, ev):
     num = page*8
     msglist = db.get_pic_list_group(gid,num)
     if not len(msglist):
-        await bot.finish(ev, '无法找到本群图片信息', at_sender=True)
+        await bot.send(ev, '无法找到本群图片信息', at_sender=True)
+        return
     resultmes = img_make(msglist,page)
     await bot.send(ev, f"您正在查看本群的第【{page}】页图片{resultmes}", at_sender=True)
     
@@ -549,7 +637,8 @@ async def check_all_pic(bot, ev):
     msglist = db.get_pic_list_all(num)
     #msg = f"页数{page} 数据{len(msglist)}"
     if not len(msglist):
-        await bot.finish(ev, '无法找到图片信息', at_sender=True)
+        await bot.send(ev, '无法找到图片信息', at_sender=True)
+        return
     resultmes = img_make(msglist,page)
     await bot.send(ev, f"您正在查看全部群的第【{page}】页图片{resultmes}", at_sender=True)
     #await bot.send(ev, msg, at_sender=True)
@@ -570,7 +659,8 @@ async def del_img(bot, ev):
         uid = ev.user_id
         if not priv.check_priv(ev,priv.SUPERUSER):
             msg = "只有超管才能删除"
-            await bot.finish(ev, msg, at_sender=True)
+            await bot.send(ev, msg, at_sender=True)
+            return
         id = ev.message.extract_plain_text().strip()
         if not id.isdigit() and '*' not in id:
             await bot.send(ev, '图片ID呢???')
@@ -617,14 +707,30 @@ async def quick_img(bot, ev):
             response = await aiorequests.get(url, timeout = 30)
             data = await response.content
         except Exception as e:
-            await bot.finish(ev, f"请求超时~", at_sender=True)
+            await bot.send(ev, f"请求超时~", at_sender=True)
+            return
         msg,imgmes,error_msg = process_img(data)
         if len(error_msg):
-            await bot.finish(ev, f"已报错：{error_msg}", at_sender=True)
+            await bot.send(ev, f"已报错：{error_msg}", at_sender=True)
+            return
         resultmes = f"[CQ:image,file={imgmes}]"
         resultmes += msg
         resultmes += f"\n tags:{tags}"
-        await bot.send(ev, resultmes, at_sender=True)
+
+        result_list = []
+        msg_list = []
+        msg_list.append(resultmes)
+        result_list = await send_msg(msg_list, ev)
+        second = get_group_config(gid, "withdraw")
+        if second and second > 0:
+            await asyncio.sleep(second)
+            for result in result_list:
+                try:
+                    await bot.delete_msg(self_id=ev['self_id'], message_id=result['message_id'])
+                except:
+                    traceback.print_exc()
+                    hoshino.logger.error('[ERROR]撤回失败')
+                await asyncio.sleep(1)
     except ValueError as e:
         await bot.send(ev, f"已报错：【{id}】号图片不存在！",at_sender=True)
         traceback.print_exc()
@@ -644,7 +750,11 @@ async def get_img_peifang(bot, ev: CQEvent):
         msg = re.sub("&seed=[0-9]\d*", "", b, count=0, flags=0)
         tags = f"{msg}"
         resultmes = f"【{id}】号图片的配方如下:\n{tags}"
-        await bot.send(ev, resultmes, at_sender=True)
+
+        result_list = []
+        msg_list = []
+        msg_list.append(resultmes)
+        result_list = await send_msg(msg_list, ev)
     except ValueError as e:
         await bot.send(ev, f"已报错：【{id}】号图片不存在！",at_sender=True)
         traceback.print_exc()

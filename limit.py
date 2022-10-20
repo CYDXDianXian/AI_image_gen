@@ -19,8 +19,10 @@ def guolv(sent=str):
     # 生成过滤词列表
     tags_guolu_list = []
     for i in sent_list:
-        if i in wordlist:
-            tags_guolu_list.append(i)
+        i_list = i.split(" ")
+        for o in i_list:
+            if o.strip() in wordlist:
+                tags_guolu_list.append(i)
     
     # 移除发送列表中的违禁词
     for j in tags_guolu_list:

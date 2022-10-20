@@ -8,15 +8,18 @@
 
 ## 注意事项
 
-- **2022-10-14版本更新后，旧配置文件`config.json`与新版无法兼容，请备份好个人api和token数据后删除`config.json`文件，再使用`git pull`命令从仓库拉取更新，获取配置文件模板`config_example.json`后按文档后面提到的配置方法进行操作。若您在使用过程中发生报错，请检查配置文件是否已更新**
-- **2022-10-18版本更新后，新增了依赖并移除百度和有道api配置项，如出现报错请在插件目录下运行powershell输入`pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple`来安装新增的依赖并重设配置文件**
+- **2022-10-20版本更新后，旧配置文件`config.json`与新版无法兼容，请备份好个人api和token数据后删除`config.json`文件，再使用`git pull`命令从仓库拉取更新，获取配置文件模板`config_example.json`后按文档后面提到的配置方法进行操作。若您在使用过程中发生报错，请检查配置文件是否已更新**
 
-- **2022-10-18版本更新的无需api的翻译功能，目前因无法实现异步请求，大段文字提交会导致bot卡死问题，所以本仓库已经回档，继续使用翻译api接入。若更新遇到问题，请删除AI_image_gen目录后重新克隆仓库（注意删除前先将`SaveImage`文件夹和`config.json`文件备份好，若不慎删除出现找不到图片路径的报错，请一并删除 `根目录\.hoshino\AI_image_pic.db` 文件来解决报错问题）**
+- **若出现 `ImportError: No module named xxx` 报错，请重装依赖：在插件目录下运行powershell输入`pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple`**
+
+- **若仓库更新遇到问题，请删除AI_image_gen目录后重新克隆仓库（注意删除前先将`SaveImage`文件夹和`config.json`文件备份好，若不慎删除出现找不到图片路径的报错，请一并删除 `~\.hoshino\AI_image_pic.db` 文件来解决报错问题）：**
 
   ```
   # 在...HoshinoBot\hoshino\modules目录下删除旧AI_image_gen目录重新克隆该仓库：
   git clone https://github.com/CYDXDianXian/AI_image_gen.git
   ```
+  
+- **2022-10-20版本开始，新上传图片的保存路径移至Hoshinobot资源目录下：`...HoshinoBot\res\img\AI_setu`**
 
 ## 特点
 
@@ -34,8 +37,10 @@
 - [x] 可设置群黑/白名单
 - [x] 可屏蔽群人数超过一定数量的大群
 - [x] 可自行设置屏蔽词，屏蔽某些tag后会使bot出图更加安全健康，tag会自动转为小写
-- [ ] 图片鉴赏功能
-- [ ] 回复上传图片/回复AI回复/回复图片鉴赏
+- [x] 图片鉴赏功能
+- [x] 转发消息模式
+- [x] 自动撤回消息
+- [x] 回复消息进行以图绘图、图片上传、图片鉴赏
 
 ## 配置方法
 
@@ -54,50 +59,62 @@
 
    - 在`api`中填写IP地址
    - 在`token`中填写你的token
-   - 在`baidu_appid`中填写自己的[百度翻译](https://api.fanyi.baidu.com/)APP ID
-   - 在`baidu_key`填写自己的[百度翻译](https://api.fanyi.baidu.com/)密钥
-   - 在`app_id`中填写自己的[有道智云](https://ai.youdao.com/)应用id
-   - 在`app_key`中填写自己的[有道智云](https://ai.youdao.com/)应用秘钥
+   - 【可选】在`baidu_appid`中填写自己的[百度翻译](https://api.fanyi.baidu.com/)APP ID，不填使用内置百度翻译
+   - 【可选】在`baidu_key`填写自己的[百度翻译](https://api.fanyi.baidu.com/)密钥，不填使用内置百度翻译
+   - 【可选】在`app_id`中填写自己的[有道智云](https://ai.youdao.com/)应用id，不填使用内置有道翻译
+   - 【可选】在`app_key`中填写自己的[有道智云](https://ai.youdao.com/)应用秘钥，不填使用内置有道翻译
 
    百度翻译与有道翻译二选一即可，不用的翻译可以关掉。（建议使用百度翻译，对二次元词汇翻译效果较好，如何获取API请翻阅文档后半部分的**API说明**）
 
    ```python
    {
-    "base": {
-        "daily_max": 20,  # 每日上限次数
-        "freq_limit": 60,  # 频率限制
-        "whitelistmode": False,  # 白名单模式开关
-        "blacklistmode": True,  # 黑名单模式开关
-        "ban_if_group_num_over": 1000,  # 屏蔽群人数超过1000人的群
-    },
-    "default": {
-        "arrange_tags": True,  # 是否开启tags整理（默认开启，暂时无法关闭）
-        "add_db": True,  # 是否开启数据录入（默认开启，暂时无法关闭）
-        "trans": True,  # 是否开启翻译
-        "limit_word": True  # 是否开启违禁词过滤
-    },
-    "NovelAI": {
-        "api": "",  # 设置api，例如："http://11.222.333.444:5555/"
-        "token": ""  # 设置你的token，例如："ADGdsvSFGsaA5S2D"，（若你的api无需使用token，留空即可）
-    },
-    "baidu": {
-        "baidu_trans": True,  # 百度翻译开关
-        "baidu_api": "https://fanyi-api.baidu.com/api/trans/vip/translate",  # 百度api地址
-        "baidu_appid": "",  # 自己的百度翻译APP ID
-        "baidu_key": ""  # 自己的百度翻译密钥
-    },
-    "youdao": {
-        "youdao_trans": False,  # 有道翻译开关
-        "youdao_api": "https://openapi.youdao.com/api",  # 有道api地址
-        "app_id": "",  # 自己的有道智云应用id
-        "app_key": ""  # 自己的有道智云应用秘钥
-    },
-    "default_tags": {
-        "tags": "miku"  # 如果没有指定tag的话，默认的tag
-    },
-    "ban_word": {
-        "wordlist": ["r18", "naked", "vagina", "penis", "nsfw", "genital", "nude", "&r18=1", "nipple"]
-    } # 屏蔽词列表
+       "base": {
+           "daily_max": 20,  # 每日上限次数
+           "freq_limit": 60,  # 频率限制
+           "whitelistmode": False,  # 白名单模式开关
+           "blacklistmode": True,  # 黑名单模式开关
+           "ban_if_group_num_over": 1000,  # 屏蔽群人数超过1000人的群
+           "enable_forward_msg": True  # 是否开启转发消息模式
+       },
+       "default": {
+           "withdraw": 0,  # 撤回时间，单位秒。设置为0即为不撤回
+           "arrange_tags": True,  # 是否开启tags整理（默认开启，暂时无法关闭）
+           "add_db": True,  # 是否开启数据录入（默认开启，暂时无法关闭）
+           "trans": True,  # 是否开启翻译
+           "limit_word": True  # 是否开启违禁词过滤
+       },
+       "NovelAI": {
+           "api": "",  # 设置api，例如："http://11.222.333.444:5555/"
+           "token": ""  # 设置你的token，例如："ADGdsvSFGsaA5S2D"，（若你的api无需使用token，留空即可）
+       },
+       "baidu": {
+           "baidu_trans": True,  # 百度翻译开关
+           "baidu_api": "https://fanyi-api.baidu.com/api/trans/vip/translate",  # 百度api地址
+           "baidu_appid": "",  # 【可选】自己的百度翻译APP ID，不填使用内置百度翻译
+           "baidu_key": ""  # 【可选】自己的百度翻译密钥，不填使用内置百度翻译
+       },
+       "youdao": {
+           "youdao_trans": False,  # 有道翻译开关
+           "youdao_api": "https://openapi.youdao.com/api",  # 有道api地址
+           "app_id": "",  # 【可选】自己的有道智云应用id，不填使用内置有道翻译
+           "app_key": ""  # 【可选】自己的有道智云应用秘钥，不填使用内置有道翻译
+       },
+       "default_tags": {
+           "tags": "miku"  # 如果没有指定tag的话，默认的tag
+       },
+       "ban_word": {
+           "wordlist": [
+               "r18",
+               "naked",
+               "vagina",
+               "penis",
+               "nsfw",
+               "genital",
+               "nude",
+               "NSFW",
+               "R18"
+           ]
+       },  # 屏蔽词列表
    }
    ```
 
@@ -155,14 +172,22 @@
 
 ## API说明
 
-- 目前可用的NovelAI-API：[路路佬的API](http://91.216.169.75:5010/token)
-- 有道翻译API：请访问[有道智云](https://ai.youdao.com/)注册账号，在控制台中以API接入方式创建一个文本翻译应用，查看应用即可获取有道应用ID和应用秘钥，然后将其填写至配置文件即可使用有道翻译服务
-- **如何使用百度翻译API？**（目前来看百度翻译二次元词汇比有道效果好一点）
-  1. 使用您的百度账号登录[百度翻译开放平台](http://api.fanyi.baidu.com/)
+> 目前可用的NovelAI-API：[路路佬的API](https://lulu.uedbq.xyz/token)
+
+> 如何使用翻译？（注：百度翻译二次元词汇比有道效果好一点）
+
+- 方案一：内置翻译器[可选 百度/有道]
+  1. 在配置文件启用你需要的翻译
+  2. 无需填写API ID和密钥即可开始使
+  3. 注意单次翻译字符上限为5000，次数无限，若魔法咏唱的tag超过字符数请选择方案二：API调用
+
+- 方案二：API调用[可选 百度/有道]
+  1. 若使用百度翻译API：使用您的百度账号登录[百度翻译开放平台](http://api.fanyi.baidu.com/)
   2. 注册成为开发者，获得 APPID
   3. 进行开发者认证（如仅需标准版可跳过）【仅需实名注册一下就可以使用高级版，建议认证。高级版免费调用量为100万字符/月】
   4. 开通通用翻译API服务：[开通链接](https://fanyi-api.baidu.com/choose)
   5. 在管理控制台中查看APP ID与密钥，将其填入配置文件对应的位置
+  6. 若使用有道翻译API：请访问[有道智云](https://ai.youdao.com/)注册账号，在控制台中以API接入方式创建一个文本翻译应用，查看应用即可获取有道应用ID和应用秘钥，然后将其填写至配置文件即可使用有道翻译服务
 
 ## 使用效果预览
 
@@ -182,7 +207,8 @@
 
 ![image](https://user-images.githubusercontent.com/71607036/195219976-a4a9d82b-a1d5-4ff9-912a-9ea808d90a75.png)
 
-![image](https://user-images.githubusercontent.com/71607036/195997014-3344cfa8-9568-4374-b64e-04e8bf2316e0.png)
+![image](https://user-images.githubusercontent.com/71607036/196759011-cf5e6782-1a65-4e8c-9801-2bb2465bd9a1.png)
+![image](https://user-images.githubusercontent.com/71607036/196759036-59b3151a-af47-4209-b7c3-c661fc05d661.png)
 
 ## 鸣谢
 
@@ -198,7 +224,9 @@
 
 ## 更新日志
 
-2022-10-19：移除百度和有道api，无需申请api便可使用百度和有道翻译
+2022-10-20：新增不用申请APIKEY的内置[翻译](https://github.com/azmiao/translator_lite)
+
+2022-10-20：新增转发消息模式；新增自动撤回消息功能；图片鉴赏直接生成文字版tags，方便复制；修复回复上传、回复以图绘图、回复图片鉴赏的bug
 
 2022-10-16：新增回复消息以图绘图、上传图片、生成tags功能
 

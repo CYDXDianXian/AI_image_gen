@@ -29,30 +29,25 @@ SOFTWARE.
 """
 
 import re
-import time
+import json
 import random
 import urllib.parse
 import hashlib
-import functools
+import time
 import warnings
-from typing import Union
-
 import lxml.etree
 import execjs
-import requests
+import httpx
+from typing import Union
 
-class Tse:
+class Tse():
     def __init__(self):
+        self.client = httpx.AsyncClient()
         self.author = 'Ulion.Tse'
         self.modify = 'AZMIAO'
-
-    @staticmethod
-    def time_stat(func):
-        @functools.wraps(func)
-        def _wrapper(*args, **kwargs):
-            r = func(*args, **kwargs)
-            return r
-        return _wrapper
+    
+    async def close(self):
+        await self.client.aclose()
 
     @staticmethod
     def get_headers(host_url, if_api=False, if_referer_for_host=True, if_ajax_for_api=True, if_json_for_api=False):
@@ -136,17 +131,17 @@ class Baidu(Tse):
         lang_str = re.compile('langMap: {(.*?)}').search(host_html.replace('\n', '').replace('  ', '')).group()[8:]
         return execjs.eval(lang_str)
 
-    def get_sign(self, query_text, host_html, ss, timeout, proxies):
+    async def get_sign(self, query_text, host_html, client, timeout):
         gtk_list = re.compile("""window.gtk = '(.*?)';|window.gtk = "(.*?)";""").findall(host_html)[0]
         gtk = gtk_list[0] or gtk_list[1]
 
         try:
             if not self.get_sign_url:
                 self.get_sign_url = re.compile(self.get_sign_pattern).search(host_html).group(0)
-            r = ss.get(self.get_sign_url, headers=self.host_headers, timeout=timeout, proxies=proxies)
+            r = await client.get(self.get_sign_url, headers=self.host_headers, timeout=timeout)
             r.raise_for_status()
         except:
-            r = ss.get(self.get_sign_old_url, headers=self.host_headers, timeout=timeout, proxies=proxies)
+            r = await client.get(self.get_sign_old_url, headers=self.host_headers, timeout=timeout)
             r.raise_for_status()
         sign_html = r.text
 
@@ -164,7 +159,7 @@ class Baidu(Tse):
     def get_acs_token(self):
         pass  # todo
 
-    def baidu_api_v1(self, query_text: str, from_language: str = 'auto', to_language: str = 'en', **kwargs) -> Union[str, dict]:
+    async def baidu_api_v1(self, query_text: str, from_language: str = 'auto', to_language: str = 'en', **kwargs) -> Union[str, dict]:
         """
         https://fanyi.baidu.com
         :param query_text: str, must.  # attention emoji
@@ -174,41 +169,39 @@ class Baidu(Tse):
                 :param if_ignore_limit_of_length: boolean, default False.
                 :param is_detail_result: boolean, default False.
                 :param timeout: float, default None.
-                :param proxies: dict, default None.
-                :param sleep_seconds: float, default `random.random()`.
         :return: str or dict
         """
         is_detail_result = kwargs.get('is_detail_result', False)
         timeout = kwargs.get('timeout', None)
-        proxies = kwargs.get('proxies', None)
-        sleep_seconds = kwargs.get('sleep_seconds', random.random())
         if_ignore_limit_of_length = kwargs.get('if_ignore_limit_of_length', False)
         query_text = self.check_query_text(query_text, if_ignore_limit_of_length, limit_of_length=self.input_limit)
         if not query_text:
             return ''
 
-        with requests.Session() as ss:
-            _ = ss.get(self.host_url, headers=self.host_headers, timeout=timeout, proxies=proxies)  # must twice, send cookies.
-            host_html = ss.get(self.host_url, headers=self.host_headers, timeout=timeout, proxies=proxies).text
-            if not self.language_map:
-                self.language_map = self.get_language_map(host_html)
-            from_language, to_language = self.check_language(from_language, to_language, self.language_map, output_zh=self.output_zh)
+        _ = await self.client.get(self.host_url, headers=self.host_headers, timeout=timeout)  # must twice, send cookies.
+        host_html = await self.client.get(self.host_url, headers=self.host_headers, timeout=timeout)
+        host_html = host_html.text
+        if not self.language_map:
+            self.language_map = self.get_language_map(host_html)
+        from_language, to_language = self.check_language(from_language, to_language, self.language_map, output_zh=self.output_zh)
 
-            form_data = {
-                'from': from_language,
-                'to': to_language,
-                'query': query_text,
-                'source': 'txt',
-            }
-            r = ss.post(self.api1_url, data=form_data, headers=self.api_headers, timeout=timeout, proxies=proxies)
-            r.raise_for_status()
-            data = r.json()
-        time.sleep(sleep_seconds)
+        form_data = {
+            'from': from_language,
+            'to': to_language,
+            'query': query_text,
+            'source': 'txt',
+        }
+        r = await self.client.post(self.api1_url, data=form_data, headers=self.api_headers, timeout=timeout)
+        
+        r.raise_for_status()
+        data = r.json()
         self.query_count += 1
-        return data if is_detail_result else data['data'][0]['dst']
+        try:
+            return data if is_detail_result else data['data'][0]['dst']
+        except:
+            return data if is_detail_result else list(json.loads(data['result'])['content'][0]['mean'][0]['cont'].keys())[0]
 
-    # @Tse.time_stat
-    def baidu_api_v2(self, query_text: str, from_language: str = 'auto', to_language: str = 'en', **kwargs) -> Union[str, dict]:
+    async def baidu_api_v2(self, query_text: str, from_language: str = 'auto', to_language: str = 'en', **kwargs) -> Union[str, dict]:
         """
         https://fanyi.baidu.com
         :param query_text: str, must.  # attention emoji
@@ -219,8 +212,6 @@ class Baidu(Tse):
                 :param if_ignore_limit_of_length: boolean, default False.
                 :param is_detail_result: boolean, default False.
                 :param timeout: float, default None.
-                :param proxies: dict, default None.
-                :param sleep_seconds: float, default `random.random()`.
         :return: str or dict
         """
 
@@ -229,50 +220,47 @@ class Baidu(Tse):
             raise TranslatorError('Your [professional_field] is wrong.')
         is_detail_result = kwargs.get('is_detail_result', False)
         timeout = kwargs.get('timeout', None)
-        proxies = kwargs.get('proxies', None)
-        sleep_seconds = kwargs.get('sleep_seconds', random.random())
         if_ignore_limit_of_length = kwargs.get('if_ignore_limit_of_length', False)
         query_text = self.check_query_text(query_text, if_ignore_limit_of_length, limit_of_length=self.input_limit)
         if not query_text:
             return ''
 
-        with requests.Session() as ss:
-            _ = ss.get(self.host_url, headers=self.host_headers, timeout=timeout, proxies=proxies)  # must twice, send cookies.
-            host_html = ss.get(self.host_url, headers=self.host_headers, timeout=timeout, proxies=proxies).text
+        _ = await self.client.get(self.host_url, headers=self.host_headers, timeout=timeout)  # must twice, send cookies.
+        host_html = await self.client.get(self.host_url, headers=self.host_headers, timeout=timeout)
+        host_html = host_html.text
 
-            if not self.language_map:
-                self.language_map = self.get_language_map(host_html)
-            if not self.token:
-                self.token = self.get_tk(host_html)
+        if not self.language_map:
+            self.language_map = self.get_language_map(host_html)
+        if not self.token:
+            self.token = self.get_tk(host_html)
 
-            self.sign = self.get_sign(query_text, host_html, ss, timeout, proxies)
-            from_language, to_language = self.check_language(from_language, to_language, self.language_map, output_zh=self.output_zh)
+        self.sign = self.get_sign(query_text, host_html, self.client, timeout)
+        from_language, to_language = self.check_language(from_language, to_language, self.language_map, output_zh=self.output_zh)
 
-            if from_language == 'auto':
-                res = ss.post(self.langdetect_url, headers=self.api_headers, data={"query": query_text}, timeout=timeout, proxies=proxies)
-                from_language = res.json()['lan']
+        if from_language == 'auto':
+            res = await self.client.post(self.langdetect_url, headers=self.api_headers, data={"query": query_text}, timeout=timeout)
+            from_language = res.json()['lan']
 
-            params = {"from": from_language, "to": to_language}
-            form_data = {
-                "from": from_language,
-                "to": to_language,
-                "query": query_text,  # from urllib.parse import quote_plus
-                "transtype": "translang",  # ["translang","realtime"]
-                "simple_means_flag": "3",
-                "sign": self.sign,
-                "token": self.token,
-                "domain": use_domain,
-            }
-            form_data = urllib.parse.urlencode(form_data).encode('utf-8')
-            # self.api_headers.update({'Acs-Token': self.acs_token})  # todo
-            r = ss.post(self.api2_url, params=params, data=form_data, headers=self.api_headers, timeout=timeout, proxies=proxies)
-            r.raise_for_status()
-            data = r.json()
-        time.sleep(sleep_seconds)
+        params = {"from": from_language, "to": to_language}
+        form_data = {
+            "from": from_language,
+            "to": to_language,
+            "query": query_text,  # from urllib.parse import quote_plus
+            "transtype": "translang",  # ["translang","realtime"]
+            "simple_means_flag": "3",
+            "sign": self.sign,
+            "token": self.token,
+            "domain": use_domain,
+        }
+        form_data = urllib.parse.urlencode(form_data).encode('utf-8')
+        # self.api_headers.update({'Acs-Token': self.acs_token})  # todo
+        r = await self.client.post(self.api2_url, params=params, data=form_data, headers=self.api_headers, timeout=timeout)
+        r.raise_for_status()
+        data = r.json()
+
         self.query_count += 1
         return data if is_detail_result else '\n'.join([x['dst'] for x in data['trans_result']['data']])
 
-    # @Tse.time_stat
     def baidu_api(self, query_text: str, from_language: str = 'auto', to_language: str = 'en', **kwargs) -> Union[str, dict]:
         """
         https://fanyi.baidu.com
@@ -284,9 +272,6 @@ class Baidu(Tse):
                 :param professional_field: str, default 'common'. Choose from ('common', 'medicine', 'electronics', 'mechanics')
                 :param if_ignore_limit_of_length: boolean, default False.
                 :param is_detail_result: boolean, default False.
-                :param timeout: float, default None.
-                :param proxies: dict, default None.
-                :param sleep_seconds: float, default `random.random()`.
         :return: str or dict
         """
         use_version = kwargs.get('version', 'v1')
@@ -320,14 +305,14 @@ class Youdao(Tse):
         lang_map.update({'zh-CHS': list(lang_map.keys())})
         return lang_map
 
-    def get_sign_key(self, ss, host_html, timeout, proxies):
+    async def get_sign_key(self, host_html, timeout):
         try:
             if not self.get_new_sign_url:
                 self.get_new_sign_url = re.compile(self.get_sign_pattern).search(host_html).group(0)
-            r = ss.get(self.get_new_sign_url, headers=self.host_headers, timeout=timeout, proxies=proxies)
+            r = await self.client.get(self.get_new_sign_url, headers=self.host_headers, timeout=timeout)
             r.raise_for_status()
         except:
-            r = ss.get(self.get_old_sign_url, headers=self.host_headers, timeout=timeout, proxies=proxies)
+            r = await self.client.get(self.get_old_sign_url, headers=self.host_headers, timeout=timeout)
             r.raise_for_status()
         sign = re.compile('md5\("fanyideskweb" \+ e \+ i \+ "(.*?)"\)').findall(r.text)
         return sign[0] if sign and sign != [''] else "Ygy_4c=r#e#4EX^NUGUc5"  # v1.1.10
@@ -352,13 +337,12 @@ class Youdao(Tse):
             'version': '2.1',
             'keyfrom': 'fanyi.web',
             'action': 'FY_BY_REALTlME',
-            # not time.["FY_BY_REALTlME", "FY_BY_DEFAULT", "FY_BY_CLICKBUTTION", "lan-select"]
+            # not asyncio.["FY_BY_REALTlME", "FY_BY_DEFAULT", "FY_BY_CLICKBUTTION", "lan-select"]
             # 'typoResult': 'false'
         }
         return form
 
-    # @Tse.time_stat
-    def youdao_api(self, query_text: str, from_language: str = 'auto', to_language: str = 'en', **kwargs) -> Union[str, dict]:
+    async def youdao_api(self, query_text: str, from_language: str = 'auto', to_language: str = 'en', **kwargs) -> Union[str, dict]:
         """
         https://fanyi.youdao.com
         :param query_text: str, must.
@@ -368,38 +352,42 @@ class Youdao(Tse):
                 :param if_ignore_limit_of_length: boolean, default False.
                 :param is_detail_result: boolean, default False.
                 :param timeout: float, default None.
-                :param proxies: dict, default None.
-                :param sleep_seconds: float, default `random.random()`.
         :return: str or dict
         """
         is_detail_result = kwargs.get('is_detail_result', False)
         timeout = kwargs.get('timeout', None)
-        proxies = kwargs.get('proxies', None)
-        sleep_seconds = kwargs.get('sleep_seconds', random.random())
         if_ignore_limit_of_length = kwargs.get('if_ignore_limit_of_length', False)
         query_text = self.check_query_text(query_text, if_ignore_limit_of_length, limit_of_length=self.input_limit)
         if not query_text:
             return ''
 
-        with requests.Session() as ss:
-            host_html = ss.get(self.host_url, headers=self.host_headers, timeout=timeout, proxies=proxies).text
-            if not self.language_map:
-                self.language_map = self.get_language_map(host_html)
-            sign_key = self.get_sign_key(ss, host_html, timeout, proxies)
-            from_language, to_language = self.check_language(from_language, to_language, self.language_map, output_zh=self.output_zh)
+        host_html = await self.client.get(self.host_url, headers=self.host_headers, timeout=timeout)
+        host_html = host_html.text
+        if not self.language_map:
+            self.language_map = self.get_language_map(host_html)
+        sign_key = await self.get_sign_key(host_html, timeout)
+        from_language, to_language = self.check_language(from_language, to_language, self.language_map, output_zh=self.output_zh)
 
-            form = self.get_form(query_text, from_language, to_language, sign_key)
-            r = ss.post(self.api_url, data=form, headers=self.api_headers, timeout=timeout, proxies=proxies)
-            r.raise_for_status()
-            data = r.json()
-            if data['errorCode'] == 40:
-                raise TranslatorError('Invalid translation of `from_language[auto]`, '
-                                      'please specify parameters of `from_language` or `to_language`.')
-        time.sleep(sleep_seconds)
+        form = self.get_form(query_text, from_language, to_language, sign_key)
+        r = await self.client.post(self.api_url, data=form, headers=self.api_headers, timeout=timeout)
+        r.raise_for_status()
+        data = r.json()
+        if data['errorCode'] == 40:
+            raise TranslatorError('Invalid translation of `from_language[auto]`, '
+                                    'please specify parameters of `from_language` or `to_language`.')
+
         self.query_count += 1
         return data if is_detail_result else ' '.join(item['tgt'] if item['tgt'] else '\n' for result in data['translateResult'] for item in result)
 
-_baidu = Baidu()
-baidu = _baidu.baidu_api
-_youdao = Youdao()
-youdao = _youdao.youdao_api
+baidu = Baidu().baidu_api
+youdao = Youdao().youdao_api
+
+import asyncio
+
+# async def test():
+#     result1 = await baidu('test', 'jp', 'en')
+#     result2 = await youdao(':d')
+#     print(result1, result2)
+
+# loop = asyncio.get_event_loop()
+# loop.run_until_complete(test())

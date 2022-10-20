@@ -3,6 +3,7 @@ import base64
 from io import BytesIO
 from PIL import Image, ImageFont, ImageDraw
 from hoshino import aiorequests
+from hoshino.typing import Message
 
 fontpath = os.path.join(os.path.dirname(__file__), 'fonts/SourceHanSansCN-Medium.otf')
 
@@ -58,13 +59,13 @@ async def get_image_and_msg(bot, ev):
     else:
         msg_id = None
         for i in ev.message:
-            if i.type == 'reply':
+            if i['type'] == 'reply':
                 msg_id = i['data']['id']
         if msg_id is not None:
-            reply_msg = (await bot.get_msg(message_id=msg_id))['message']
+            reply_msg = Message((await bot.get_msg(message_id=msg_id))['message'])
             for i in reply_msg:
                 if i['type'] == 'image':
-                    url = i["data"]["url"]
+                    url = i['data']['url']
             if url:
                 resp = await aiorequests.get(url)
                 resp_cont = await resp.content
@@ -72,3 +73,8 @@ async def get_image_and_msg(bot, ev):
                 return image, get_image_hash(resp_cont), ''.join(seg['data']['text'] for seg in reply_msg if seg['type'] == 'text')
     return None, None, None
 
+def isContainChinese(string: str) -> bool:
+    for char in string:
+        if ('\u4e00' <= char <= '\u9fa5'):
+            return True
+    return False
