@@ -1,4 +1,5 @@
 import os
+import random
 import base64
 from io import BytesIO
 from PIL import Image, ImageFont, ImageDraw
@@ -78,3 +79,13 @@ def isContainChinese(string: str) -> bool:
         if ('\u4e00' <= char <= '\u9fa5'):
             return True
     return False
+
+
+def generate_code(code_len=6):
+    all_char = '0123456789qazwsxedcrfvtgbyhnujmikolp'
+    index = len(all_char) - 1
+    code = ''
+    for _ in range(code_len):
+        num = random.randint(0, index)
+        code += all_char[num]
+    return code

@@ -1,18 +1,8 @@
 import asyncio
 import io
 import base64
-import random
+from .utils import generate_code
 from hoshino import aiorequests
-
-
-def generate_code(code_len=6):
-    all_char = '0123456789qazwsxedcrfvtgbyhnujmikolp'
-    index = len(all_char) - 1
-    code = ''
-    for _ in range(code_len):
-        num = random.randint(0, index)
-        code += all_char[num]
-    return code
 
 
 async def fetch_data(_hash, max_retry_num=15):

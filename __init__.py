@@ -7,6 +7,7 @@ from hoshino import R
 from . import db
 from .packedfiles import default_config
 from .deepDanbooru import get_tags
+from .real_esrgan import up_sampling
 from .utils import text_to_image, image_to_base64, get_image_and_msg, key_worlds_removal
 from hoshino.typing import CQEvent, MessageSegment
 import base64
@@ -376,9 +377,9 @@ async def gen_pic_from_pic(bot, ev: CQEvent):
 
 @sv.on_keyword(('图片鉴赏', '鉴赏图片', '生成tag', '生成tags'))
 async def generate_tags(bot, ev):
-    uid = ev['user_id']
-    gid = ev['group_id']
-
+    # uid = ev['user_id']
+    # gid = ev['group_id']
+    #
     # num = 1
     # result, msg = check_lmt(uid, num, gid)  # 检查群权限与个人次数
     # if result != 0:
@@ -400,6 +401,22 @@ async def generate_tags(bot, ev):
         msg_list.append(msg)
         result_list = await send_msg(msg_list, ev)
         # await bot.send(ev, MessageSegment.reply(ev.message_id) + MessageSegment.image(image_to_base64(text_to_image(msg))))
+    else:
+        await bot.send(ev, '生成失败，肯定不是bot的错！', at_sender=True)
+        traceback.print_exc()
+
+
+@sv.on_keyword(('清晰术', '清晰化', '上采样'))
+async def sharpen_esrgan(bot, ev):
+    image, _, _ = await get_image_and_msg(bot, ev)
+    if not image:
+        await bot.send(ev, '请输入需要分析的图片', at_sender=True)
+        return
+    await bot.send(ev, f"正在优化图片，请稍后...")
+
+    img_msg = await up_sampling(image)
+    if img_msg:
+        await bot.send(ev, MessageSegment.image(img_msg), at_sender=True)
     else:
         await bot.send(ev, '生成失败，肯定不是bot的错！', at_sender=True)
         traceback.print_exc()
