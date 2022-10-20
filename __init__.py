@@ -8,6 +8,7 @@ from . import db
 from .packedfiles import default_config
 from .deepDanbooru import get_tags
 from .real_esrgan import up_sampling
+from .cartoonize import cartoonization
 from .utils import text_to_image, image_to_base64, get_image_and_msg, key_worlds_removal
 from hoshino.typing import CQEvent, MessageSegment
 import base64
@@ -419,6 +420,22 @@ async def sharpen_esrgan(bot, ev):
         await bot.send(ev, MessageSegment.image(img_msg), at_sender=True)
     else:
         await bot.send(ev, '生成失败，肯定不是bot的错！', at_sender=True)
+        traceback.print_exc()
+
+
+@sv.on_keyword(('二次元化', '动漫化'))
+async def animize(bot, ev):
+    image, _, _ = await get_image_and_msg(bot, ev)
+    if not image:
+        await bot.send(ev, '请输入需要分析的图片', at_sender=True)
+        return
+    await bot.send(ev, f"正在进入二次元，请稍后...")
+
+    img_msg = await cartoonization(image)
+    if img_msg:
+        await bot.send(ev, MessageSegment.image(img_msg), at_sender=True)
+    else:
+        await bot.send(ev, '生成失败，图片被创死了！', at_sender=True)
         traceback.print_exc()
 
     
