@@ -24,7 +24,7 @@
 ## 特点
 
 - [x] 根据tag绘制图片，根据tag+图片绘制图片
-- [x] 接入有道翻译api和百度翻译api，可自动将中文tag翻译为英文
+- [x] 接入有道翻译和百度翻译，可自动将中文tag翻译为英文
 - [x] 上传AI生成的图片及其配方
 - [x] 查看个人/本群/全部群图片
 - [x] 查看已上传图片的配方
@@ -59,10 +59,10 @@
 
    - 在`api`中填写IP地址
    - 在`token`中填写你的token
-   - 在`baidu_appid`中填写自己的[百度翻译](https://api.fanyi.baidu.com/)APP ID
-   - 在`baidu_key`填写自己的[百度翻译](https://api.fanyi.baidu.com/)密钥
-   - 在`app_id`中填写自己的[有道智云](https://ai.youdao.com/)应用id
-   - 在`app_key`中填写自己的[有道智云](https://ai.youdao.com/)应用秘钥
+   - 【可选】在`baidu_appid`中填写自己的[百度翻译](https://api.fanyi.baidu.com/)APP ID，不填使用内置百度翻译
+   - 【可选】在`baidu_key`填写自己的[百度翻译](https://api.fanyi.baidu.com/)密钥，不填使用内置百度翻译
+   - 【可选】在`app_id`中填写自己的[有道智云](https://ai.youdao.com/)应用id，不填使用内置有道翻译
+   - 【可选】在`app_key`中填写自己的[有道智云](https://ai.youdao.com/)应用秘钥，不填使用内置有道翻译
 
    百度翻译与有道翻译二选一即可，不用的翻译可以关掉。（建议使用百度翻译，对二次元词汇翻译效果较好，如何获取API请翻阅文档后半部分的**API说明**）
 
@@ -77,7 +77,7 @@
            "enable_forward_msg": True  # 是否开启转发消息模式
        },
        "default": {
-           "withdraw": 120,  # 撤回时间，单位秒。设置为0即为不撤回
+           "withdraw": 0,  # 撤回时间，单位秒。设置为0即为不撤回
            "arrange_tags": True,  # 是否开启tags整理（默认开启，暂时无法关闭）
            "add_db": True,  # 是否开启数据录入（默认开启，暂时无法关闭）
            "trans": True,  # 是否开启翻译
@@ -90,14 +90,14 @@
        "baidu": {
            "baidu_trans": True,  # 百度翻译开关
            "baidu_api": "https://fanyi-api.baidu.com/api/trans/vip/translate",  # 百度api地址
-           "baidu_appid": "",  # 自己的百度翻译APP ID
-           "baidu_key": ""  # 自己的百度翻译密钥
+           "baidu_appid": "",  # 【可选】自己的百度翻译APP ID，不填使用内置百度翻译
+           "baidu_key": ""  # 【可选】自己的百度翻译密钥，不填使用内置百度翻译
        },
        "youdao": {
            "youdao_trans": False,  # 有道翻译开关
            "youdao_api": "https://openapi.youdao.com/api",  # 有道api地址
-           "app_id": "",  # 自己的有道智云应用id
-           "app_key": ""  # 自己的有道智云应用秘钥
+           "app_id": "",  # 【可选】自己的有道智云应用id，不填使用内置有道翻译
+           "app_key": ""  # 【可选】自己的有道智云应用秘钥，不填使用内置有道翻译
        },
        "default_tags": {
            "tags": "miku"  # 如果没有指定tag的话，默认的tag
@@ -172,14 +172,22 @@
 
 ## API说明
 
-- 目前可用的NovelAI-API：[路路佬的API](https://lulu.uedbq.xyz/token)
-- 有道翻译API：请访问[有道智云](https://ai.youdao.com/)注册账号，在控制台中以API接入方式创建一个文本翻译应用，查看应用即可获取有道应用ID和应用秘钥，然后将其填写至配置文件即可使用有道翻译服务
-- **如何使用百度翻译API？**（目前来看百度翻译二次元词汇比有道效果好一点）
-  1. 使用您的百度账号登录[百度翻译开放平台](http://api.fanyi.baidu.com/)
+> 目前可用的NovelAI-API：[路路佬的API](https://lulu.uedbq.xyz/token)
+
+> 如何使用翻译？（注：百度翻译二次元词汇比有道效果好一点）
+
+- 方案一：内置翻译器[可选 百度/有道]
+  1. 在配置文件启用你需要的翻译
+  2. 无需填写API ID和密钥即可开始使
+  3. 注意单次翻译字符上限为5000，次数无限，若魔法咏唱的tag超过字符数请选择方案二：API调用
+
+- 方案二：API调用[可选 百度/有道]
+  1. 若使用百度翻译API：使用您的百度账号登录[百度翻译开放平台](http://api.fanyi.baidu.com/)
   2. 注册成为开发者，获得 APPID
   3. 进行开发者认证（如仅需标准版可跳过）【仅需实名注册一下就可以使用高级版，建议认证。高级版免费调用量为100万字符/月】
   4. 开通通用翻译API服务：[开通链接](https://fanyi-api.baidu.com/choose)
   5. 在管理控制台中查看APP ID与密钥，将其填入配置文件对应的位置
+  6. 若使用有道翻译API：请访问[有道智云](https://ai.youdao.com/)注册账号，在控制台中以API接入方式创建一个文本翻译应用，查看应用即可获取有道应用ID和应用秘钥，然后将其填写至配置文件即可使用有道翻译服务
 
 ## 使用效果预览
 
@@ -215,6 +223,8 @@
 [ai绘图安全版](https://github.com/jiyemengmei/AI_Draw_safemode)
 
 ## 更新日志
+
+2022-10-20：新增不用申请APIKEY的内置[翻译](https://github.com/azmiao/translator_lite)
 
 2022-10-20：新增转发消息模式；新增自动撤回消息功能；图片鉴赏直接生成文字版tags，方便复制；修复回复上传、回复以图绘图、回复图片鉴赏的bug
 

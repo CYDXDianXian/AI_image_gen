@@ -9,7 +9,7 @@ config_default = {
         "enable_forward_msg": True  # 是否开启转发消息模式
     },
     "default": {
-        "withdraw": 120,  # 撤回时间，单位秒。设置为0即为不撤回
+        "withdraw": 0,  # 撤回时间，单位秒。设置为0即为不撤回
         "arrange_tags": True,  # 是否开启tags整理（默认开启，暂时无法关闭）
         "add_db": True,  # 是否开启数据录入（默认开启，暂时无法关闭）
         "trans": True,  # 是否开启翻译
@@ -22,14 +22,14 @@ config_default = {
     "baidu": {
         "baidu_trans": True,  # 百度翻译开关
         "baidu_api": "https://fanyi-api.baidu.com/api/trans/vip/translate",  # 百度api地址
-        "baidu_appid": "",  # 自己的百度翻译APP ID
-        "baidu_key": ""  # 自己的百度翻译密钥
+        "baidu_appid": "",  # 【可选】自己的百度翻译APP ID，不填使用内置百度翻译
+        "baidu_key": ""  # 【可选】自己的百度翻译密钥，不填使用内置百度翻译
     },
     "youdao": {
         "youdao_trans": False,  # 有道翻译开关
         "youdao_api": "https://openapi.youdao.com/api",  # 有道api地址
-        "app_id": "",  # 自己的有道智云应用id
-        "app_key": ""  # 自己的有道智云应用秘钥
+        "app_id": "",  # 【可选】自己的有道智云应用id，不填使用内置有道翻译
+        "app_key": ""  # 【可选】自己的有道智云应用秘钥，不填使用内置有道翻译
     },
     "default_tags": {
         "tags": "miku"  # 如果没有指定tag的话，默认的tag

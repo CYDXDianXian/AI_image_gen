@@ -2,27 +2,31 @@ import json
 import os
 import traceback
 import nonebot
-import hoshino
+from hoshino import logger
 
 cfgpath = os.path.join(os.path.dirname(__file__), 'config.json')
 grouplistpath = os.path.join(os.path.dirname(__file__), 'grouplist.json')
 groupconfigpath = os.path.join(os.path.dirname(__file__), 'groupconfig.json')
-group_config = {}
-config = {}
-invaild_key_dict = {}
-group_list = {}
-config = json.load(open(cfgpath, 'r', encoding='utf8'))
-group_list = json.load(open(grouplistpath, 'r', encoding='utf8'))
-group_config = json.load(open(groupconfigpath, 'r', encoding='utf8'))
 
+def get_file():
+	invaild_key_dict = {}
+	config = {}
+	group_list = {}
+	group_config = {}
 
+	config = json.load(open(cfgpath, 'r', encoding='utf8'))
+	group_list = json.load(open(grouplistpath, 'r', encoding='utf8'))
+	group_config = json.load(open(groupconfigpath, 'r', encoding='utf8'))
+	return invaild_key_dict, config, group_list, group_config
 
 def get_config(key, sub_key):
+	_, config, _, _ = get_file()
 	if key in config and sub_key in config[key]:
 		return config[key][sub_key]
 	return None
 	
 def get_grouplist(key):
+	_, _, group_list, _ = get_file()
 	if key in group_list:
 		return group_list[key]
 	return None
@@ -35,6 +39,7 @@ def group_list_check(gid):
     2 : 启用黑名单模式且在黑名单内\n
     白名单优先级高于黑名单
     """
+	_, _, group_list, _ = get_file()
 	gid = str(gid)
 	if get_config('base', 'whitelistmode') is True:
 		if gid in group_list["white_list"]:
@@ -66,6 +71,7 @@ def set_group_list(gid, _list, mode):
     空字符串 ok\n
     gid     未完成操作的gid
     """
+	_, _, group_list, _ = get_file()
 	failed_gids = []
 	try:
 		_list = int(_list)
@@ -90,7 +96,7 @@ def set_group_list(gid, _list, mode):
 				if i in group_list["white_list"]:
 					group_list["white_list"].remove(i)
 				else:
-					hoshino.logger.error(f'[ERROR]gid {i} 不在指定列表中')
+					logger.error(f'[ERROR]gid {i} 不在指定列表中')
 					failed_gids.append(i)
 					continue
 		group_list["white_list"] = list(set(group_list["white_list"]))
@@ -103,7 +109,7 @@ def set_group_list(gid, _list, mode):
 				if i in group_list["black_list"]:
 					group_list["black_list"].remove(i)
 				else:
-					hoshino.logger.error(f'[ERROR]gid {i} 不在指定列表中')
+					logger.error(f'[ERROR]gid {i} 不在指定列表中')
 					failed_gids.append(i)
 					continue
 		group_list["black_list"] = list(set(group_list["black_list"]))
@@ -124,6 +130,7 @@ def set_group_list(gid, _list, mode):
 
 
 def get_group_config(group_id, key):
+	_, config, _, group_config = get_file()
 	group_id = str(group_id)
 	if group_id not in group_config:
 		return config['default'][key]
@@ -134,6 +141,7 @@ def get_group_config(group_id, key):
 
 
 def set_group_config(group_id, key, value):
+	_, config, _, group_config = get_file()
 	group_id = str(group_id)
 	if group_id not in group_config:
 		group_config[group_id] = {}
@@ -169,7 +177,7 @@ async def get_group_info(group_ids=0, info_type='member_count'):
 	if type(group_ids) == int:
 		# 转为列表
 		group_ids = [group_ids]
-		hoshino.logger.error(group_ids)
+		logger.error(group_ids)
 	
 	for key in list(group_info_dir.keys()):
 		if key not in group_ids:

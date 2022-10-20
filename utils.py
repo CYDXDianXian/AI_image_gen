@@ -73,3 +73,8 @@ async def get_image_and_msg(bot, ev):
                 return image, get_image_hash(resp_cont), ''.join(seg['data']['text'] for seg in reply_msg if seg['type'] == 'text')
     return None, None, None
 
+def isContainChinese(string: str) -> bool:
+    for char in string:
+        if ('\u4e00' <= char <= '\u9fa5'):
+            return True
+    return False
