@@ -103,11 +103,7 @@ from .deepDanbooru import get_tags
 tlmt = hoshino.util.DailyNumberLimiter(get_config('base', 'daily_max'))
 flmt = hoshino.util.FreqLimiter(get_config('base', 'freq_limit'))
 
-
-# 设置API
-word2img_url = f"{get_config('NovelAI', 'api')}got_image?tags="
-img2img_url = f"{get_config('NovelAI', 'api')}got_image2image"
-token = f"&token={get_config('NovelAI', 'token')}"
+# 获取默认tag
 default_tags = get_config('default_tags', 'tags')
 
 def check_lmt(uid, num, gid):
