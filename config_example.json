@@ -8,7 +8,7 @@
         "enable_forward_msg": true
     },
     "default": {
-        "withdraw": 120,
+        "withdraw": 0,
         "arrange_tags": true,
         "add_db": true,
         "trans": true,
