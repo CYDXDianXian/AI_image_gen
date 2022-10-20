@@ -10,14 +10,16 @@ config_default = {
     },
     "default": {
         "withdraw": 0,  # 撤回时间，单位秒。设置为0即为不撤回
-        "arrange_tags": True,  # 是否开启tags整理（默认开启，暂时无法关闭）
-        "add_db": True,  # 是否开启数据录入（默认开启，暂时无法关闭）
+        "arrange_tags": True,  # 是否开启tags整理
+        "add_db": True,  # 是否开启XP数据录入
+        "per_page_num": 28, # 用于查看图片时，每页最多有多少张图
         "trans": True,  # 是否开启翻译
         "limit_word": True  # 是否开启违禁词过滤
     },
     "NovelAI": {
         "api": "",  # 设置api，例如："http://11.222.333.444:5555/"
-        "token": ""  # 设置你的token，例如："ADGdsvSFGsaA5S2D"，（若你的api无需使用token，留空即可）
+        "token": "",  # 设置你的token，例如："ADGdsvSFGsaA5S2D"，（若你的api无需使用token，留空即可）
+        "strength": "0.60" # Denoising strength 与原图的关联程度，越小关联越大
     },
     "baidu": {
         "baidu_trans": True,  # 百度翻译开关

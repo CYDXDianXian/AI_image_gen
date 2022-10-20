@@ -11,12 +11,14 @@
         "withdraw": 0,
         "arrange_tags": true,
         "add_db": true,
+        "per_page_num": 28,
         "trans": true,
         "limit_word": true
     },
     "NovelAI": {
         "api": "",
-        "token": ""
+        "token": "",
+        "strength": "0.60"
     },
     "baidu": {
         "baidu_trans": true,

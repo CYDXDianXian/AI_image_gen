@@ -288,4 +288,4 @@ def get_pic_list_personal(uid,num=8):
 def del_pic(id):
     PC = PicCounter()
     r = PC._del_pic(id)
-    return r
+    return "remove pic success"
