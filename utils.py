@@ -284,7 +284,6 @@ async def fetch_data(url_status, _hash, max_retry_num=15):
             return None
 
         resj = await (await aiorequests.post(url_status, json={'hash': _hash})).json()
-        print(resj)
         if resj['status'] == 'PENDING' or resj['status'] == 'QUEUED':
             retrying += 1
             await asyncio.sleep(1)
@@ -364,6 +363,6 @@ async def img_make(msglist,page = 1):
         draw.text((80*column+384*(column-1)+int(region.width/2)+20,80+100*(row-1)+384*(row-1)+region.height),thumb,font=font,fill = (0, 0, 0))
     result_buffer = BytesIO()
     target.save(result_buffer, format='JPEG', quality=90) #质量影响图片大小
-    imgmes = 'base64://' + base64.b64encode(result_buffer.getvalue()).decode()
+    imgmes = 'base64://' + b64encode(result_buffer.getvalue()).decode()
     resultmes = f"[CQ:image,file={imgmes}]"
     return resultmes
