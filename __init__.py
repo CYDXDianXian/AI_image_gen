@@ -96,7 +96,6 @@ from .config import get_config, get_group_config, get_group_info, set_group_conf
 from .process import process_tags
 from .message import SendMessageProcess
 from . import utils
-from .deepDanbooru import get_tags
 
 
 # 设置limiter
@@ -350,7 +349,7 @@ async def generate_tags(bot, ev):
         await bot.send(ev, '请输入需要分析的图片', at_sender=True)
         return
     await bot.send(ev, f"正在生成tags，请稍后...")
-    json_tags = await get_tags(image)
+    json_tags = await utils.get_tags(image)
 
     if json_tags:
         msg = "图片鉴赏结果为如下"
