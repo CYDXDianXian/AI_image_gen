@@ -340,7 +340,7 @@ async def get_tags(image):
     image.save(imageData, format='PNG')
     params['data'] = ['data:image/png;base64,' + str(b64encode(imageData.getvalue()))[2:-1], 0.5]  # 0.5的阈值
     _hash = (await (await aiorequests.post(url_push, json=params)).json())['hash']
-    resj = await fetch_data('https://hf.space/embed/hysts/DeepDanbooru/api/queue/push/', _hash)
+    resj = await fetch_data('https://hf.space/embed/hysts/DeepDanbooru/api/queue/status/', _hash)
     return resj
 
 async def img_make(msglist,page = 1):
