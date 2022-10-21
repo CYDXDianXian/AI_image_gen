@@ -9,9 +9,9 @@
     },
     "default": {
         "withdraw": 0,
+        "per_page_num": 28,
         "arrange_tags": true,
         "add_db": true,
-        "per_page_num": 28,
         "trans": true,
         "limit_word": true
     },
