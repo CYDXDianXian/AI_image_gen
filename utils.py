@@ -5,7 +5,6 @@ import json
 import math
 from pathlib import Path
 import random
-import base64
 from io import BytesIO
 import re
 import time
@@ -47,7 +46,7 @@ def image_to_base64(img: Image.Image, format='PNG') -> str:
     output_buffer = BytesIO()
     img.save(output_buffer, format)
     byte_data = output_buffer.getvalue()
-    base64_str = base64.b64encode(byte_data).decode()
+    base64_str = b64encode(byte_data).decode()
     return 'base64://' + base64_str
 
 
@@ -78,14 +77,6 @@ def generate_code(code_len=6):
         code += all_char[num]
     return code
 
-def generate_code(code_len=6):
-    all_char = '0123456789qazwsxedcrfvtgbyhnujmikolp'
-    index = len(all_char) - 1
-    code = ''
-    for _ in range(code_len):
-        num = random.randint(0, index)
-        code += all_char[num]
-    return code
 
 # async def get_pic_d(msg):
 #     error_msg = ""  # 报错信息
@@ -264,7 +255,7 @@ async def up_sampling(img):
     '''
     图片超分
     '''
-    url_push = 'https://hf.space/embed/akhaliq/Real-ESRGAN/api/predict/'
+    url_predict = 'https://hf.space/embed/akhaliq/Real-ESRGAN/api/predict/'
 
     params = {
         "fn_index": 0,
@@ -275,7 +266,7 @@ async def up_sampling(img):
     imageData = BytesIO()
     img.save(imageData, format='PNG')
     params['data'] = ['data:image/png;base64,' + str(b64encode(imageData.getvalue()))[2:-1], "anime"]
-    res = await (await aiorequests.post(url_push, json=params)).json()
+    res = await (await aiorequests.post(url_predict, json=params)).json()
     if 'data' in res:
         result_img = b64decode(''.join(res['data'][0].split(',')[1:]))
         result_img = Image.open(BytesIO(result_img)).convert("RGB")
@@ -287,11 +278,13 @@ async def up_sampling(img):
         return None
 
 async def fetch_data(url_status, _hash, max_retry_num=15):
-    resj = await (await aiorequests.post(url_status, json={'hash': _hash})).json()
     retrying = 0
     while True:
         if retrying >= max_retry_num:
             return None
+
+        resj = await (await aiorequests.post(url_status, json={'hash': _hash})).json()
+        print(resj)
         if resj['status'] == 'PENDING' or resj['status'] == 'QUEUED':
             retrying += 1
             await asyncio.sleep(1)
@@ -320,7 +313,7 @@ async def cartoonization(image):
 
     imageData = BytesIO()
     image.save(imageData, format='PNG')
-    params['data'] = ['data:image/png;base64,' + str(b64encode(imageData.getvalue()))[2:-1]]  # 0.5的阈值
+    params['data'] = ['data:image/png;base64,' + str(b64encode(imageData.getvalue()))[2:-1]]
     _hash = (await (await aiorequests.post(url_push, json=params)).json())['hash']
     resj = await fetch_data('https://hf.space/embed/hylee/White-box-Cartoonization/api/queue/status/', _hash)
     return resj
@@ -337,7 +330,7 @@ async def get_tags(image):
 
     imageData = BytesIO()
     image.save(imageData, format='PNG')
-    params['data'] = ['data:image/png;base64,' + str(base64.b64encode(imageData.getvalue()))[2:-1], 0.5]  # 0.5的阈值
+    params['data'] = ['data:image/png;base64,' + str(b64encode(imageData.getvalue()))[2:-1], 0.5]  # 0.5的阈值
     _hash = (await (await aiorequests.post(url_push, json=params)).json())['hash']
     resj = await fetch_data('https://hf.space/embed/hysts/DeepDanbooru/api/queue/push/', _hash)
     return resj
