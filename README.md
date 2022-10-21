@@ -3,7 +3,7 @@
 
 仓库地址：https://github.com/CYDXDianXian/AI_image_gen
 
-感谢 [sans](https://github.com/sanshanya) 老师、[Cath]() 老师 以及各群友上传的代码，这里主要对群友上传的各个版本代码进行了缝合
+感谢 [sans](https://github.com/sanshanya) 老师、[Cath]() 老师、 [兰鹿](https://github.com/BlueDeer233) 以及各群友上传的代码，这里主要对群友上传的各个版本代码进行了缝合
 
 
 ## 注意事项
@@ -223,6 +223,14 @@
 [HoshinoBot](https://github.com/Ice-Cirno/HoshinoBot)
 
 [setu_renew](https://github.com/pcrbot/setu_renew)
+
+[Hugging Face](https://huggingface.co/)
+
+[DeepDanbooru](https://github.com/KichangKim/DeepDanbooru)
+
+[Real-ESRGAN](https://github.com/xinntao/Real-ESRGAN)
+
+[White-box-Cartoonization](https://github.com/SystemErrorWang/White-box-Cartoonization)
 
 ## 友情链接
 
