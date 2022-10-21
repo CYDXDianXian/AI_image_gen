@@ -7,7 +7,7 @@ from hoshino.typing import CQEvent, MessageSegment
 import re
 import json
 from hoshino import Service, priv
-import io
+from io import BytesIO
 from PIL import Image
 
 sv_help = '''
@@ -317,7 +317,7 @@ async def gen_pic_from_pic(bot, ev: CQEvent):
         else:
             image_shape = "Portrait"
         image.thumbnail(thumbSize, resample=Image.ANTIALIAS) # 图片缩放
-        imageData = io.BytesIO() # 创建二进制缓存
+        imageData = BytesIO() # 创建二进制缓存
         image.save(imageData, format='png') # 保存图片至缓存中
         
         resultmes,error_msg = await utils.get_imgdata(tags,way=0,shape=image_shape,b_io=imageData) # 绘图过程
@@ -445,29 +445,25 @@ async def get_xp_pic(bot, ev):
 
 @sv.on_keyword(('上传pic', '上传图片'))
 async def upload_header(bot, ev):
-    if ev.message[0].type == "reply":
-        tmsg = await bot.get_msg(message_id=int(ev.message[0].data['id']))
-        ev.message = tmsg["message"]
-    b_io,shape,error_msg,size = await utils.get_pic_d(ev.message)
-    if len(error_msg):
-        await bot.send(ev, f"已报错：{error_msg}", at_sender=True)
+    image, pic_hash, msg = await utils.get_image_and_msg(bot, ev) # 获取图片过程
+    if not image:
+        await bot.send(ev, "图片获取失败！", at_sender=True)
         return
-    data = b_io.getvalue()
-    pic_hash,pic_dir,error_msg = await utils.save_pic(data)
+    pic_dir,error_msg = await utils.save_pic(image, pic_hash)
     if len(error_msg):
         await bot.send(ev, f"已报错：{error_msg}", at_sender=True)
         return
     try:
-        seed=(str(ev.message).split(f"scale:")[0]).split('seed:')[1].strip()
-        scale=(str(ev.message).split(f"tags:")[0]).split('scale:')[1].strip()
-        tags=(str(ev.message).split(f"tags:")[1])
+        seed=(str(msg).split(f"scale:")[0]).split('seed:')[1].strip()
+        scale=(str(msg).split(f"tags:")[0]).split('scale:')[1].strip()
+        tags=(str(msg).split(f"tags:")[1])
         pic_msg = tags + f"&seed={seed}" + f"&scale={scale}"
     except:
         await bot.send(ev, '格式出错', at_sender=True)
         return
     try:
-        db.add_pic(ev.group_id, ev.user_id, pic_hash, str(pic_dir), pic_msg) # pic_dir是Path路径对象，必须转为str后数据库才能正常录入
-        await bot.send(ev, f'上传成功！', at_sender=True)
+        resultmes = db.add_pic(ev.group_id, ev.user_id, pic_hash, str(pic_dir), pic_msg) # pic_dir是Path路径对象，必须转为str后数据库才能正常录入
+        await bot.send(ev, resultmes, at_sender=True)
     except Exception as e:
         traceback.print_exc()
         await bot.send(ev, f"报错:{e}",at_sender=True)

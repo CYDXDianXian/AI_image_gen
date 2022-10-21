@@ -3,8 +3,6 @@ import calendar
 from heapq import nsmallest
 import json
 import math
-import os
-from os.path import dirname, join, exists
 from pathlib import Path
 import random
 import base64
@@ -53,11 +51,11 @@ def image_to_base64(img: Image.Image, format='PNG') -> str:
     return 'base64://' + base64_str
 
 
-def get_image_hash(content):
-    ls_f = base64.b64encode(BytesIO(content).read())
-    imgdata = base64.b64decode(ls_f)
-    pic_hash = hash(imgdata)
-    return pic_hash
+# def get_image_hash(content):
+#     ls_f = base64.b64encode(BytesIO(content).read())
+#     imgdata = base64.b64decode(ls_f)
+#     pic_hash = hash(imgdata)
+#     return pic_hash
 
 
 def key_worlds_removal(msg):
@@ -89,49 +87,52 @@ def generate_code(code_len=6):
         code += all_char[num]
     return code
 
-async def get_pic_d(msg):
-    error_msg = ""  # 报错信息
-    b_io = ""
-    shape = "Portrait"
-    size = 0
-    try:
-        image_url = re.search(r"\[CQ:image,file=(.*)url=(.*?)[,|\]]", str(msg))
-        url = image_url.group(2)
-    except Exception as e:
-        error_msg = "你的图片呢？"
-        return b_io,shape,error_msg,size
-    try:
-        img_data = await aiorequests.get(url)
-        image = Image.open(BytesIO(await img_data.content))
-        a,b = image.size
-        size = a*b
-        c = a/b
-        s = [0.6667,1.5,1]
-        s1 =["Portrait","Landscape","Square"]
-        shape=s1[s.index(nsmallest(1, s, key=lambda x: abs(x-c))[0])]#判断形状
-        image = image.convert("RGB")
-        b_io = BytesIO()
-        image.save(b_io, format="png")
+# async def get_pic_d(msg):
+#     error_msg = ""  # 报错信息
+#     b_io = ""
+#     shape = "Portrait"
+#     size = 0
+#     try:
+#         image_url = re.search(r"\[CQ:image,file=(.*)url=(.*?)[,|\]]", str(msg))
+#         url = image_url.group(2)
+#     except Exception as e:
+#         error_msg = "你的图片呢？"
+#         return b_io,shape,error_msg,size
+#     try:
+#         img_data = await aiorequests.get(url)
+#         image = Image.open(BytesIO(await img_data.content))
+#         a,b = image.size
+#         size = a*b
+#         c = a/b
+#         s = [0.6667,1.5,1]
+#         s1 =["Portrait","Landscape","Square"]
+#         shape=s1[s.index(nsmallest(1, s, key=lambda x: abs(x-c))[0])]#判断形状
+#         image = image.convert("RGB")
+#         b_io = BytesIO()
+#         image.save(b_io, format="JPEG")
 
-    except Exception as e:
-        error_msg = "图片处理失败" # 报错信息
-        return b_io,shape,error_msg,size
-    return b_io,shape,error_msg,size
+#     except Exception as e:
+#         error_msg = "图片处理失败" # 报错信息
+#         return b_io,shape,error_msg,size
+#     return b_io,shape,error_msg,size
 
-async def save_pic(data):
+async def save_pic(image, pic_hash):
     error_msg = ""
-    pic_hash = ""
     pic_dir = ""
     try:
-        pic_hash = hash(data)
+        if db.get_pic_exist_hash(pic_hash): # 检查图片是否存在
+            id = re.search(r"\d+", str(db.get_pic_id_hash(pic_hash))).group(0) # group(0) 返回匹配到的完整字符串
+            error_msg = f"上传失败，ID为【{id}】号的图片已存在！"
+            return pic_dir,error_msg
         datetime = calendar.timegm(time.gmtime())
         img_name = str(datetime)+'.png'
         pic_dir = save_image_path / img_name # 拼接图片路径
-        pic_dir.write_bytes(data) # 保存图片到本地
+        image.save(pic_dir) # 以给定的文件名保存此图像。如果没有格式指定时，使用的格式由文件名确定
     except Exception as e:
         error_msg = "图片保存失败"
-        return pic_hash,pic_dir,error_msg
-    return pic_hash,pic_dir,error_msg
+        traceback.print_exc()
+        return pic_dir,error_msg
+    return pic_dir,error_msg
 
 async def check_pic_(gid,uid,msg,page):
     error_msg = ""
@@ -160,8 +161,8 @@ async def get_image_and_msg(bot, ev):
     if url:
         resp = await aiorequests.get(url)
         resp_cont = await resp.content
-        image = Image.open(BytesIO(resp_cont))
-        return image, get_image_hash(resp_cont), ev.message.extract_plain_text().strip()
+        image = Image.open(BytesIO(resp_cont)).convert("RGB") # 打开图片并转换格式
+        return image, hash(resp_cont), ev.message.extract_plain_text().strip()
     else:
         msg_id = None
         for i in ev.message:
@@ -177,7 +178,7 @@ async def get_image_and_msg(bot, ev):
                 resp_cont = await resp.content
 
                 image = Image.open(BytesIO(resp_cont)).convert("RGB") # 打开图片并转换格式
-                return image, get_image_hash(resp_cont), ''.join(seg['data']['text'] for seg in reply_msg if seg['type'] == 'text')
+                return image, hash(resp_cont), ''.join(seg['data']['text'] for seg in reply_msg if seg['type'] == 'text')
     return None, None, None
 
 async def get_imgdata(tags,way=1,shape="Portrait",strength=get_config('NovelAI', 'strength'),b_io=None): # way=1时为get，way=0时为post
@@ -354,7 +355,7 @@ async def img_make(msglist,page = 1):
         draw.text((80*column+384*(column-1)+int(region.width/2)-90,80+100*(row-1)+384*(row-1)+region.height),id,font=font,fill = (0, 0, 0))
         draw.text((80*column+384*(column-1)+int(region.width/2)+20,80+100*(row-1)+384*(row-1)+region.height),thumb,font=font,fill = (0, 0, 0))
     result_buffer = BytesIO()
-    target.save(result_buffer, format='JPEG', quality=100) #质量影响图片大小
+    target.save(result_buffer, format='JPEG', quality=90) #质量影响图片大小
     imgmes = 'base64://' + base64.b64encode(result_buffer.getvalue()).decode()
     resultmes = f"[CQ:image,file={imgmes}]"
     return resultmes

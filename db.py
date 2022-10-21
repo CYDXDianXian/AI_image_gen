@@ -250,7 +250,11 @@ def add_pic(gid, uid, pic_hash, pic_dir, pic_msg):
     if not PC._get_pic_exist_hash(pic_hash):
         PC._add_pic(gid, uid, pic_hash, pic_dir, pic_msg,0)
         return "上传图片成功"
-    return "上传图片失败"
+    return "上传图片失败，图片已存在"
+
+def get_pic_exist_hash(pic_hash):
+    PC = PicCounter()
+    return PC._get_pic_exist_hash(pic_hash)
 
 def add_pic_thumb(id):
     PC = PicCounter()
