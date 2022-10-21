@@ -286,15 +286,24 @@ async def fetch_data(url_status, _hash, max_retry_num=15):
         resj = await (await aiorequests.post(url_status, json={'hash': _hash})).json()
         if resj['status'] == 'PENDING' or resj['status'] == 'QUEUED':
             retrying += 1
+            print('正在生成，请稍后')
             await asyncio.sleep(1)
             continue
         elif resj['status'] == 'COMPLETE':
-            result_img = b64decode(''.join(resj['data']['data'][0].split(',')[1:]))
-            result_img = Image.open(BytesIO(result_img)).convert("RGB")
-            buffer = BytesIO()  # 创建缓存
-            result_img.save(buffer, format="png")
-            img_msg = 'base64://' + b64encode(buffer.getvalue()).decode()
-            return img_msg
+            result_data = resj['data']['data'][0]
+            if isinstance(result_data, str):
+                result_img = b64decode(''.join(result_data.split(',')[1:]))
+                result_img = Image.open(BytesIO(result_img)).convert("RGB")
+                buffer = BytesIO()  # 创建缓存
+                result_img.save(buffer, format="png")
+                img_msg = 'base64://' + b64encode(buffer.getvalue()).decode()
+                return img_msg
+            elif isinstance(result_data, dict) and 'confidences' in result_data:
+                return result_data['confidences']
+            else:
+                return None
+        else:
+            return None
 
 async def cartoonization(image):
     '''
