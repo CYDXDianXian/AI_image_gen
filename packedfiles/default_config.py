@@ -17,7 +17,7 @@ config_default = {
         "limit_word": True  # 是否开启违禁词过滤
     },
     "NovelAI": {
-        "api": "",  # 设置api，例如："http://11.222.333.444:5555/"
+        "api": "",  # 设置api，例如："http://11.222.333.444:5555/"，结尾的/不能漏
         "token": "",  # 设置你的token，例如："ADGdsvSFGsaA5S2D"，（若你的api无需使用token，留空即可）
         "strength": "0.60" # Denoising strength 与原图的关联程度，越小关联越大
     },
