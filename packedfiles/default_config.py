@@ -35,8 +35,8 @@ config_default = {
     },
     "image4x": {
         "Real-CUGAN": True, # Real-CUGAN超分模型开关，可支持2、3、4倍超分，更锐利的线条，更好的纹理保留，虚化区域保留
-        "Real-CUGAN-api": "http://134.175.32.157:9999/api/predict", # Real-CUGAN的api地址。目前接入的是奥帝努斯大佬的GPU服务器，速度超快！
-        "Real-ESRGAN": False, # 【目前存在bug，不建议开启，效果不如Real-CUGAN】Real-ESRGAN超分模型开关，该模型仅支持4倍超分，但是实测图片尺寸一但稍微大些，生成的图片反而会很小，效果不理想。
+        "Real-CUGAN-api": "http://134.175.32.157:9999/api/predict", # Real-CUGAN的api地址。目前接入的是奥帝努斯大佬的GPU服务器，速度更快！
+        "Real-ESRGAN": False, # 目前存在bug（图片尺寸过大生成的图会很小），故暂时不建议开启
         "Real-ESRGAN-api": "https://hf.space/embed/akhaliq/Real-ESRGAN/+/api/predict/" # Real-ESRGAN的api地址
     },
     "default_tags": {
