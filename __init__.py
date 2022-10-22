@@ -305,7 +305,7 @@ async def gen_pic_from_pic(bot, ev: CQEvent):
             image_shape = "Portrait"
         image.thumbnail(thumbSize, resample=Image.ANTIALIAS) # 图片缩放
         imageData = BytesIO() # 创建二进制缓存
-        image.save(imageData, format='png') # 保存图片至缓存中
+        image.save(imageData, format='png') # 保存图片至缓存中，png格式为无损格式
         
         resultmes,error_msg = await utils.get_imgdata(tags,way=0,shape=image_shape,b_io=imageData) # 绘图过程
         if len(error_msg):

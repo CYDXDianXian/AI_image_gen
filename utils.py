@@ -12,7 +12,7 @@ import traceback
 from PIL import Image, ImageFont, ImageDraw
 from hoshino import R, aiorequests
 from . import db
-from hoshino.typing import Message
+from hoshino.typing import Message, MessageSegment
 from .config import get_config
 from base64 import b64decode, b64encode
 
@@ -27,7 +27,7 @@ def pic2b64(pic: Image) -> str:
     图片转base64
     '''
     buf = BytesIO()
-    pic.save(buf, format='png')
+    pic.save(buf, format='JPEG', quality=90)
     base64_str = base64.b64encode(buf.getvalue()).decode()
     return 'base64://' + base64_str
 
@@ -115,7 +115,7 @@ async def save_pic(image, pic_hash):
             error_msg = f"上传失败，ID为【{id}】号的图片已存在！"
             return pic_dir,error_msg
         datetime = calendar.timegm(time.gmtime())
-        img_name = str(datetime)+'.png'
+        img_name = str(datetime)+'.jpg'
         pic_dir = save_image_path / img_name # 拼接图片路径
         image.save(pic_dir) # 以给定的文件名保存此图像。如果没有格式指定时，使用的格式由文件名确定
     except Exception as e:
@@ -151,7 +151,7 @@ async def get_image_and_msg(bot, ev):
     if url:
         resp = await aiorequests.get(url)
         resp_cont = await resp.content
-        image = Image.open(BytesIO(resp_cont)).convert("RGB") # 打开图片并转换格式
+        image = Image.open(BytesIO(resp_cont)).convert("RGB") # 载入图片并转换色彩空间为RGB
         return image, hash(resp_cont), ev.message.extract_plain_text().strip()
     else:
         msg_id = None
@@ -159,7 +159,7 @@ async def get_image_and_msg(bot, ev):
             if i['type'] == 'reply':
                 msg_id = i['data']['id']
         if msg_id is not None:
-            reply_msg = Message((await bot.get_msg(message_id=msg_id))['message'])
+            reply_msg = Message((await bot.get_msg(message_id=msg_id))['message']) # 将CQ码转为字典，以便提取消息内容
             for i in reply_msg:
                 if i['type'] == 'image':
                     url = i['data']['url']
@@ -167,7 +167,7 @@ async def get_image_and_msg(bot, ev):
                 resp = await aiorequests.get(url)
                 resp_cont = await resp.content
 
-                image = Image.open(BytesIO(resp_cont)).convert("RGB") # 打开图片并转换格式
+                image = Image.open(BytesIO(resp_cont)).convert("RGB") # 载入图片并转换色彩空间为RGB
                 return image, hash(resp_cont), ''.join(seg['data']['text'] for seg in reply_msg if seg['type'] == 'text')
     return None, None, None
 
@@ -201,14 +201,12 @@ async def get_imgdata(tags,way=1,shape="Portrait",strength=get_config('NovelAI',
         error_msg = f"获取图片信息失败"
         return resultmes,error_msg
     try:
-        img = Image.open(BytesIO(imgdata)).convert("RGB")
-        buffer = BytesIO()  # 创建二进制缓存
-        img.save(buffer, format="png") # 将图片保存在缓存中
-        imgmes = 'base64://' + b64encode(buffer.getvalue()).decode() # 将缓存中的图片转为base64
+        img = Image.open(BytesIO(imgdata)).convert("RGB") # 载入图片并转换色彩空间为RGB
+        imgmes = pic2b64(img) # 将图片转为base64
     except Exception as e:
         error_msg += f"处理图像失败：{e}"
         return resultmes,error_msg
-    resultmes = f"[CQ:image,file={imgmes}]{msg}\ntags:{tags}"
+    resultmes = f"{MessageSegment.image(imgmes)}]{msg}\ntags:{tags}" # MessageSegment.image(imgmes)将图片转为CQ码
     return resultmes,error_msg
 
 async def get_xp_list_(msg,gid,uid):
@@ -264,8 +262,8 @@ async def get_Real_CUGAN(image, modelname):
     '''
     api = get_config("image4x", "Real-CUGAN-api") # 获取api地址
     b_io = BytesIO()
-    image.save(b_io, format='png')
-    i_b64 = "data:image/png;base64," + base64.b64encode(b_io.getvalue()).decode()
+    image.save(b_io, format='JPEG', quality=90)
+    i_b64 = "data:image/jpeg;base64," + base64.b64encode(b_io.getvalue()).decode()
     params = {
         "data": [
             i_b64,
@@ -275,8 +273,8 @@ async def get_Real_CUGAN(image, modelname):
         }
     res = await (await aiorequests.post(url=api, json=params)).json()
     if "data" in res:
-        result_img = b64decode(''.join(res['data'][0].split(',')[1:])) # 截取列表中的第2项到结尾
-        result_img = Image.open(BytesIO(result_img)).convert("RGB")
+        result_img = b64decode(''.join(res['data'][0].split(',')[1:])) # 截取列表中的第2项到结尾获取base64并解码为图片
+        result_img = Image.open(BytesIO(result_img)).convert("RGB") # 载入图片并转换色彩空间为RGB
         return pic2b64(result_img) # 图片转base64
     else:
         return None
@@ -287,8 +285,8 @@ async def get_Real_ESRGAN(img):
     '''
     url_predict = get_config("image4x", "Real-ESRGAN-api") # 获取api地址
     b_io = BytesIO()
-    img.save(b_io, format='png')
-    i_b64 = "data:image/png;base64," + str(b64encode(b_io.getvalue()))[2:-1]
+    img.save(b_io, format='JPEG', quality=90)
+    i_b64 = "data:image/jpeg;base64," + str(b64encode(b_io.getvalue()))[2:-1]
     params = {
         "fn_index": 0,
         "data": [
@@ -299,8 +297,8 @@ async def get_Real_ESRGAN(img):
     }
     res = await (await aiorequests.post(url_predict, json=params)).json()
     if 'data' in res:
-        result_img = b64decode(''.join(res['data'][0].split(',')[1:])) # 截取列表中的第2项到结尾
-        result_img = Image.open(BytesIO(result_img)).convert("RGB")
+        result_img = b64decode(''.join(res['data'][0].split(',')[1:])) # 截取列表中的第2项到结尾获取base64并解码为图片
+        result_img = Image.open(BytesIO(result_img)).convert("RGB") # 载入图片并转换色彩空间为RGB
         return pic2b64(result_img) # 图片转base64
     else:
         return None
@@ -320,11 +318,9 @@ async def fetch_data(url_status, _hash, max_retry_num=15):
         elif resj['status'] == 'COMPLETE':
             result_data = resj['data']['data'][0]
             if isinstance(result_data, str):
-                result_img = b64decode(''.join(result_data.split(',')[1:]))
-                result_img = Image.open(BytesIO(result_img)).convert("RGB")
-                buffer = BytesIO()  # 创建缓存
-                result_img.save(buffer, format="png")
-                img_msg = 'base64://' + b64encode(buffer.getvalue()).decode()
+                result_img = b64decode(''.join(result_data.split(',')[1:])) # 截取列表中的第2项到结尾获取base64并解码为图片
+                result_img = Image.open(BytesIO(result_img)).convert("RGB") # 载入图片并转换色彩空间为RGB
+                img_msg = pic2b64(result_img) # 图片转base64
                 return img_msg
             elif isinstance(result_data, dict) and 'confidences' in result_data:
                 return result_data['confidences']
@@ -348,8 +344,8 @@ async def cartoonization(image):
     }
 
     imageData = BytesIO()
-    image.save(imageData, format='PNG')
-    params['data'] = ['data:image/png;base64,' + str(b64encode(imageData.getvalue()))[2:-1]]
+    image.save(imageData, format='JPEG', quality=90)
+    params['data'] = ['data:image/jpeg;base64,' + str(b64encode(imageData.getvalue()))[2:-1]]
     _hash = (await (await aiorequests.post(url_push, json=params)).json())['hash']
     resj = await fetch_data('https://hf.space/embed/hylee/White-box-Cartoonization/api/queue/status/', _hash)
     return resj
@@ -365,8 +361,8 @@ async def get_tags(image):
     }
 
     imageData = BytesIO()
-    image.save(imageData, format='PNG')
-    params['data'] = ['data:image/png;base64,' + str(b64encode(imageData.getvalue()))[2:-1], 0.5]  # 0.5的阈值
+    image.save(imageData, format='JPEG', quality=90)
+    params['data'] = ['data:image/jpeg;base64,' + str(b64encode(imageData.getvalue()))[2:-1], 0.5]  # 0.5的阈值
     _hash = (await (await aiorequests.post(url_push, json=params)).json())['hash']
     resj = await fetch_data('https://hf.space/embed/hysts/DeepDanbooru/api/queue/status/', _hash)
     return resj
@@ -398,8 +394,6 @@ async def img_make(msglist,page = 1):
         target.paste(region,(80*column+384*(column-1),50+100*(row-1)+384*(row-1)))
         draw.text((80*column+384*(column-1)+int(region.width/2)-90,80+100*(row-1)+384*(row-1)+region.height),id,font=font,fill = (0, 0, 0))
         draw.text((80*column+384*(column-1)+int(region.width/2)+20,80+100*(row-1)+384*(row-1)+region.height),thumb,font=font,fill = (0, 0, 0))
-    result_buffer = BytesIO()
-    target.save(result_buffer, format='JPEG', quality=90) #质量影响图片大小
-    imgmes = 'base64://' + b64encode(result_buffer.getvalue()).decode()
-    resultmes = f"[CQ:image,file={imgmes}]"
+    imgmes = pic2b64(target) # 将图片转为base64
+    resultmes = MessageSegment.image(imgmes) # 将图片转为CQ码
     return resultmes
