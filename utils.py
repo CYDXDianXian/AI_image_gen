@@ -195,11 +195,11 @@ async def get_imgdata(tags,way=1,shape="Portrait",strength=get_config('NovelAI',
     error_msg = ""
     try:
         msg=""
-        msgdata = json.loads(re.findall('{"steps".+?}',str(imgdata))[0])
+        msgdata = json.loads(re.findall(r'{"steps".+?}',str(imgdata))[0]) # 使用r''来声明原始字符串，避免转义
         msg = f'\nseed:{msgdata["seed"]}   scale:{msgdata["scale"]}'
     except Exception as e:
         traceback.print_exc()
-        error_msg = f"获取图片信息失败"
+        error_msg = f"获取图片信息失败，服务器未返回数据"
         return resultmes,error_msg
     try:
         img = Image.open(BytesIO(imgdata)).convert("RGB") # 载入图片并转换色彩空间为RGB
@@ -207,7 +207,7 @@ async def get_imgdata(tags,way=1,shape="Portrait",strength=get_config('NovelAI',
     except Exception as e:
         error_msg += f"处理图像失败：{e}"
         return resultmes,error_msg
-    resultmes = f"{MessageSegment.image(imgmes)}]{msg}\ntags:{tags}" # MessageSegment.image(imgmes)将图片转为CQ码
+    resultmes = f"{MessageSegment.image(imgmes)}{msg}\ntags:{tags}" # MessageSegment.image(imgmes)将图片转为CQ码
     return resultmes,error_msg
 
 async def get_xp_list_(msg,gid,uid):

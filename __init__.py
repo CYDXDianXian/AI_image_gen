@@ -414,7 +414,7 @@ async def get_xp_pic(bot, ev):
 async def upload_header(bot, ev):
     image, pic_hash, msg = await utils.get_image_and_msg(bot, ev) # 获取图片过程
     if not image:
-        await bot.send(ev, "图片获取失败！", at_sender=True)
+        await bot.send(ev, "请输入要上传的图片", at_sender=True)
         return
     pic_dir,error_msg = await utils.save_pic(image, pic_hash)
     if len(error_msg):
