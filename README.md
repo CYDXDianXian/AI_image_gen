@@ -246,7 +246,9 @@
 
 ## 友情链接
 
-[ai绘图安全版](https://github.com/jiyemengmei/AI_Draw_safemode)
+[ai_setu - sans](https://github.com/pcrbot/ai_setu)
+
+[ai绘图安全版 - 姬野梦美](https://github.com/jiyemengmei/AI_Draw_safemode)
 
 ## 更新日志
 
