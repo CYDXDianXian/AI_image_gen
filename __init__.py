@@ -263,8 +263,6 @@ async def gen_pic(bot, ev: CQEvent):
         return
 
 
-thumbSize = (768, 768)
-
 @sv.on_keyword(('以图生图', '以图绘图'))
 async def gen_pic_from_pic(bot, ev: CQEvent):
     msg_list = []
@@ -303,6 +301,7 @@ async def gen_pic_from_pic(bot, ev: CQEvent):
             image_shape = "Square"
         else:
             image_shape = "Portrait"
+        thumbSize = (768, 768)
         image.thumbnail(thumbSize, resample=Image.ANTIALIAS) # 图片缩放
         imageData = BytesIO() # 创建二进制缓存
         image.save(imageData, format='png') # 保存图片至缓存中，png格式为无损格式
