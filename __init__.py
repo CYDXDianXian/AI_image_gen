@@ -32,6 +32,7 @@ sv_help = '''
 
 以下为维护组使用(空格不能漏)：
 [绘图 状态 <群号>] 查看本群或指定群的模块开启状态
+[绘图 设置 撤回时间 0~999] 设置撤回时间(单位秒)，0为不撤回
 [绘图 设置 tags整理/数据录入/中英翻译/违禁词过滤 启用/关闭] 启用或关闭对应模块
 [绘图 黑/白名单 新增/添加/移除/删除 群号] 修改黑白名单
 [黑名单列表/白名单列表] 查询黑白名单列表
@@ -196,24 +197,6 @@ async def send_config(bot, ev):
             msg = f'群{failedgid[0]}不在黑名单中'
         elif statuscode == 401:
             msg = f'警告！黑名单模式未开启！\n成功{args[1]}群{group_id}'
-        else:
-            msg = f'成功{args[1]}群{group_id}'
-    elif args[0] == '白名单' and len(args) == 3:  # 白名单 新增/删除 gid(一次只能提供一个)
-        if args[1] in ["新增", "添加"]:
-            mode = 0
-        elif args[1] in ["删除", "移除"]:
-            mode = 1
-        else:
-            await bot.send(ev, "操作错误，应为新增/删除其一")
-            return
-        group_id = args[2]
-        statuscode, failedgid = set_group_list(group_id, 0, mode)
-        if statuscode == 403:
-            msg = '无法访问黑白名单'
-        elif statuscode == 404:
-            msg = f'群{failedgid[0]}不在白名单中'
-        elif statuscode == 402:
-            msg = f'警告！白名单模式未开启！\n成功{args[1]}群{group_id}'
         else:
             msg = f'成功{args[1]}群{group_id}'
     elif args[0] == '白名单' and len(args) == 3:  # 白名单 新增/删除 gid(一次只能提供一个)
