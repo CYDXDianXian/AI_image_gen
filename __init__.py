@@ -583,6 +583,9 @@ async def img_Real_CUGAN(bot, ev):
     try:
         msg_list = []
         image, _, _ = await utils.get_image_and_msg(bot, ev)
+        if not image:
+            await bot.send(ev, '请输入需要超分的图片', at_sender=True)
+            return
         ix=image.size[0] # 获取图片宽度
         iy=image.size[1] # 获取图片高度
         thumbSize = (1024, 1024)
@@ -640,7 +643,7 @@ async def img_Real_ESRGAN(bot, ev):
     iy=image.size[1] # 获取图片高度
     thumbSize = (1024, 1024)
     if not image:
-        await bot.send(ev, '请输入需要分析的图片', at_sender=True)
+        await bot.send(ev, '请输入需要超分的图片', at_sender=True)
         return
     if ix * iy > 1000000: # 图片像素大于100w将对其进行缩放
         image.thumbnail(thumbSize, resample=Image.ANTIALIAS) # 图片等比例缩放
