@@ -313,7 +313,7 @@ async def fetch_data(url_status, _hash, max_retry_num=15):
         resj = await (await aiorequests.post(url_status, json={'hash': _hash})).json()
         if resj['status'] == 'PENDING' or resj['status'] == 'QUEUED':
             retrying += 1
-            hoshino.logger.info('正在生成，请稍后')
+            hoshino.logger.info(f'服务器未返回数据，正在进行第{retrying}次重试！')
             await asyncio.sleep(1)
             continue
         elif resj['status'] == 'COMPLETE':
