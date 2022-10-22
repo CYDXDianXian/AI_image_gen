@@ -5,11 +5,11 @@
         "whitelistmode": false,
         "blacklistmode": true,
         "ban_if_group_num_over": 1000,
-        "enable_forward_msg": true
+        "enable_forward_msg": true,
+        "per_page_num": 28
     },
     "default": {
         "withdraw": 0,
-        "per_page_num": 28,
         "arrange_tags": true,
         "add_db": true,
         "trans": true,
@@ -31,6 +31,12 @@
         "youdao_api": "https://openapi.youdao.com/api",
         "app_id": "",
         "app_key": ""
+    },
+    "image4x": {
+        "Real-CUGAN": true,
+        "Real-CUGAN-api": "http://134.175.32.157:9999/api/predict",
+        "Real-ESRGAN": false,
+        "Real-ESRGAN-api": "https://hf.space/embed/akhaliq/Real-ESRGAN/+/api/predict/"
     },
     "default_tags": {
         "tags": "miku"

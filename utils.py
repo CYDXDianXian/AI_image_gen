@@ -1,6 +1,6 @@
 import asyncio
+import base64
 import calendar
-from heapq import nsmallest
 import json
 import math
 from pathlib import Path
@@ -20,8 +20,16 @@ save_image_path = Path(R.img('AI_setu').path) # 图片保存在res/img/AI_setu�
 Path(save_image_path).mkdir(parents = True, exist_ok = True) # 创建路径
 fontpath = Path(__file__).parent / "fonts" / "SourceHanSansCN-Medium.otf" # 字体文件的路径
 
-per_page_num = get_config('default', 'per_page_num') # 获取每页图片数量
+per_page_num = get_config("base", "per_page_num") # 获取每页图片数量
 
+def pic2b64(pic: Image) -> str:
+    '''
+    图片转base64
+    '''
+    buf = BytesIO()
+    pic.save(buf, format='png')
+    base64_str = base64.b64encode(buf.getvalue()).decode()
+    return 'base64://' + base64_str
 
 def text_to_image(text: str) -> Image.Image:
     font = ImageFont.truetype(str(fontpath), 24) # Path是路径对象，必须转为str之后ImageFont才能读取
@@ -40,15 +48,6 @@ def text_to_image(text: str) -> Image.Image:
         text = text_list[j]
         draw.text((padding, padding + j * (margin + h)), text, font=font, fill=(0, 0, 0))
     return i
-
-
-def image_to_base64(img: Image.Image, format='PNG') -> str:
-    output_buffer = BytesIO()
-    img.save(output_buffer, format)
-    byte_data = output_buffer.getvalue()
-    base64_str = b64encode(byte_data).decode()
-    return 'base64://' + base64_str
-
 
 # def get_image_hash(content):
 #     ls_f = base64.b64encode(BytesIO(content).read())
@@ -251,29 +250,58 @@ async def get_xp_pic_(msg,gid,uid):
         error_msg = f'暂无{msg}的XP信息'
     return resultmes,error_msg
 
-async def up_sampling(img):
+async def get_Real_CUGAN(image, modelname):
     '''
-    图片超分
-    '''
-    url_predict = 'https://hf.space/embed/akhaliq/Real-ESRGAN/api/predict/'
+    Real-CUGAN图片超分
 
+    来构造请求并获取返回的重建后的图像
+
+    Args:
+        json_data (dict): 对图片编码后的数据
+
+    Returns:
+        str: 返回的json格式数据
+    '''
+    api = get_config("image4x", "Real-CUGAN-api") # 获取api地址
+    b_io = BytesIO()
+    image.save(b_io, format='png')
+    i_b64 = "data:image/png;base64," + base64.b64encode(b_io.getvalue()).decode()
+    params = {
+        "data": [
+            i_b64,
+            modelname,
+            2
+            ]
+        }
+    res = await (await aiorequests.post(url=api, json=params)).json()
+    if "data" in res:
+        result_img = b64decode(''.join(res['data'][0].split(',')[1:])) # 截取列表中的第2项到结尾
+        result_img = Image.open(BytesIO(result_img)).convert("RGB")
+        return pic2b64(result_img) # 图片转base64
+    else:
+        return None
+
+async def get_Real_ESRGAN(img):
+    '''
+    Real-ESRGAN图片超分
+    '''
+    url_predict = get_config("image4x", "Real-ESRGAN-api") # 获取api地址
+    b_io = BytesIO()
+    img.save(b_io, format='png')
+    i_b64 = "data:image/png;base64," + str(b64encode(b_io.getvalue()))[2:-1]
     params = {
         "fn_index": 0,
-        "data": [],
-        "session_hash": generate_code(11),
+        "data": [
+            i_b64,
+            "anime"
+        ],
+        "session_hash": generate_code(11)
     }
-
-    imageData = BytesIO()
-    img.save(imageData, format='PNG')
-    params['data'] = ['data:image/png;base64,' + str(b64encode(imageData.getvalue()))[2:-1], "anime"]
     res = await (await aiorequests.post(url_predict, json=params)).json()
     if 'data' in res:
-        result_img = b64decode(''.join(res['data'][0].split(',')[1:]))
+        result_img = b64decode(''.join(res['data'][0].split(',')[1:])) # 截取列表中的第2项到结尾
         result_img = Image.open(BytesIO(result_img)).convert("RGB")
-        buffer = BytesIO()  # 创建缓存
-        result_img.save(buffer, format="png")
-        img_msg = 'base64://' + b64encode(buffer.getvalue()).decode()
-        return img_msg
+        return pic2b64(result_img) # 图片转base64
     else:
         return None
 

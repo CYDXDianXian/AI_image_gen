@@ -6,11 +6,11 @@ config_default = {
         "whitelistmode": False,  # 白名单模式开关
         "blacklistmode": True,  # 黑名单模式开关
         "ban_if_group_num_over": 1000,  # 屏蔽群人数超过1000人的群
-        "enable_forward_msg": True  # 是否开启转发消息模式
+        "enable_forward_msg": True,  # 是否开启转发消息模式
+        "per_page_num": 28 # 用于查看图片时，每页最多有多少张图
     },
     "default": {
         "withdraw": 0,  # 撤回时间，单位秒。设置为0即为不撤回
-        "per_page_num": 28, # 用于查看图片时，每页最多有多少张图
         "arrange_tags": True,  # 是否开启tags整理
         "add_db": True,  # 是否开启XP数据录入
         "trans": True,  # 是否开启翻译
@@ -32,6 +32,12 @@ config_default = {
         "youdao_api": "https://openapi.youdao.com/api",  # 有道api地址
         "app_id": "",  # 【可选】自己的有道智云应用id，不填使用内置有道翻译
         "app_key": ""  # 【可选】自己的有道智云应用秘钥，不填使用内置有道翻译
+    },
+    "image4x": {
+        "Real-CUGAN": True, # Real-CUGAN超分模型开关，可支持2、3、4倍超分，更锐利的线条，更好的纹理保留，虚化区域保留
+        "Real-CUGAN-api": "http://134.175.32.157:9999/api/predict", # Real-CUGAN的api地址。目前接入的是奥帝努斯大佬的GPU服务器，速度超快！
+        "Real-ESRGAN": False, # 【目前存在bug，不建议开启，效果不如Real-CUGAN】Real-ESRGAN超分模型开关，该模型仅支持4倍超分，但是实测图片尺寸一但稍微大些，生成的图片反而会很小，效果不理想。
+        "Real-ESRGAN-api": "https://hf.space/embed/akhaliq/Real-ESRGAN/+/api/predict/" # Real-ESRGAN的api地址
     },
     "default_tags": {
         "tags": "miku"  # 如果没有指定tag的话，默认的tag

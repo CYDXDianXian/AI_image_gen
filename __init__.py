@@ -139,7 +139,9 @@ async def send_config(bot, ev):
     elif args[0] == '设置' and len(args) >= 3:  # setu set module on [group]
         if len(args) >= 4 and args[3].isdigit():
             gid = int(args[3])
-        if args[1] == 'tags整理':
+        if args[1] == '撤回时间':
+            key = 'withdraw'
+        elif args[1] == 'tags整理':
             key = 'arrange_tags'
         elif args[1] == '数据录入':
             key = 'add_db'
@@ -149,9 +151,9 @@ async def send_config(bot, ev):
             key = 'limit_word'
         else:
             key = None
-        if args[2] == '开' or args[2] == '启用':
+        if args[2] == '开启' or args[2] == '启用':
             value = True
-        elif args[2] == '关' or args[2] == '禁用':
+        elif args[2] == '关闭' or args[2] == '禁用':
             value = False
         elif args[2].isdigit():
             value = int(args[2])
@@ -166,11 +168,13 @@ async def send_config(bot, ev):
     elif args[0] == '状态':
         if len(args) >= 2 and args[1].isdigit():
             gid = int(args[1])
+        withdraw_status = "不撤回" if get_group_config(gid, "withdraw") == 0 else f'{get_group_config(gid, "withdraw")}秒'
         arrange_tags_status = "启用" if get_group_config(gid, "arrange_tags") else "禁用"
         add_db_status = "启用" if get_group_config(gid, "add_db") else "禁用"
         trans_status = "启用" if get_group_config(gid, "trans") else "禁用"
         limit_word_status = "启用" if get_group_config(gid, "limit_word") else "禁用"
         msg = f'群 {gid} :'
+        msg += f'\n撤回时间: {withdraw_status}'
         msg += f'\ntags整理: {arrange_tags_status}'
         msg += f'\n数据录入: {add_db_status}'
         msg += f'\n中英翻译: {trans_status}'
@@ -236,7 +240,7 @@ async def send_config(bot, ev):
 
 @sv.on_fullmatch(('ai绘图帮助', '生成涩图帮助', '生成色图帮助'))
 async def gen_pic_help(bot, ev: CQEvent):
-    await bot.send(ev, MessageSegment.image(utils.image_to_base64(utils.text_to_image(sv_help))), at_sender=True)
+    await bot.send(ev, MessageSegment.image(utils.pic2b64(utils.text_to_image(sv_help))), at_sender=True)
 
 
 @sv.on_prefix(('ai绘图', '生成色图', '生成涩图'))
@@ -360,25 +364,6 @@ async def generate_tags(bot, ev):
     else:
         await bot.send(ev, '生成失败，肯定不是bot的错！', at_sender=True)
         traceback.print_exc()
-
-
-@sv.on_keyword(('清晰术', '清晰化', '上采样'))
-async def sharpen_esrgan(bot, ev):
-    msg_list = []
-    image, _, _ = await utils.get_image_and_msg(bot, ev)
-    if not image:
-        await bot.send(ev, '请输入需要分析的图片', at_sender=True)
-        return
-    await bot.send(ev, f"正在优化图片，请稍后...")
-
-    img_msg = await utils.up_sampling(image)
-    if img_msg:
-        msg_list.append(MessageSegment.image(img_msg))
-        await SendMessageProcess(bot, ev, msg_list) # 发送消息过程
-    else:
-        await bot.send(ev, '生成失败，肯定不是bot的错！', at_sender=True)
-        traceback.print_exc()
-
 
 @sv.on_keyword(('二次元化', '动漫化'))
 async def animize(bot, ev):
@@ -585,6 +570,91 @@ async def get_img_peifang(bot, ev: CQEvent):
         await bot.send(ev, f"报错:{e}",at_sender=True)
         traceback.print_exc()
 
+@sv.on_keyword(('清晰术', '清晰化', '上采样'))
+async def image4x(bot, ev):
+    if get_config("image4x", "Real-CUGAN"):
+        await img_Real_CUGAN(bot, ev)
+    elif get_config("image4x", "Real-ESRGAN"):
+        await img_Real_ESRGAN(bot, ev)
+    else:
+        await bot.send(ev, "已报错：Real-CUGAN与Real-ESRGAN超分模型均未开启！", at_sender=True)
+
+async def img_Real_CUGAN(bot, ev):
+    try:
+        msg_list = []
+        image, _, _ = await utils.get_image_and_msg(bot, ev)
+        ix=image.size[0] # 获取图片宽度
+        iy=image.size[1] # 获取图片高度
+        thumbSize = (1024, 1024)
+        if ix * iy > 1000000: # 图片像素大于100w将对其进行缩放
+            image.thumbnail(thumbSize, resample=Image.ANTIALIAS) # 图片等比例缩放
+            await bot.send(ev, "图片尺寸超过100万像素，将对其进行缩放", at_sender=True)
+        fashu = ev.message.extract_plain_text()
+        scale = 2
+        con = "conservative"
+        if "双重吟唱" in fashu:
+            scale = 2
+        elif "三重吟唱" in fashu:
+            scale = 3
+        elif "四重吟唱" in fashu:
+            scale = 4
+        else:
+            scale = 4 # 如不指定放大倍数，则默认放大4倍
+
+        if "强力术式" in fashu:
+            con = "denoise3x"
+        elif "中等术式" in fashu:
+            con = "no-denoise"
+            if scale == 2:
+                con = "denoise2x"
+        elif "弱术式" in fashu:
+            con = "no-denoise"
+            if scale == 2:
+                con = "denoise1x"
+        elif "不变式" in fashu:
+            con = "no-denoise"
+        elif "原式" in fashu:
+            con = "conservative"
+        else:
+            con = "denoise3x" # 如不指定降噪等级，默认3倍降噪
+
+        modelname = f"up{scale}x-latest-{con}.pth"
+        await bot.send(ev, f"鸣大钟一次，推动杠杆，启动活塞和泵；鸣大钟两次，按下按钮，发动机点火，点燃涡轮，注入生命；鸣大钟三次，齐声歌唱，赞美万机之神！大清晰术【{con}】【{scale}】重唱！")
+        img_msg = await utils.get_Real_CUGAN(image, modelname)
+
+        if img_msg:
+            msg_list.append(f"【{scale}】重唱【{con}】分支大清晰术！")
+            msg_list.append(MessageSegment.image(img_msg))
+            await SendMessageProcess(bot, ev, msg_list) # 发送消息过程
+        else:
+            await bot.send(ev, "清晰术失败，服务器未返回图片数据", at_sender=True)
+            traceback.print_exc()
+    except Exception as e:
+        await bot.send(ev, f"清晰术失败,{e}", at_sender=True)
+        traceback.print_exc()
+
+async def img_Real_ESRGAN(bot, ev):
+    msg_list = []
+    image, _, _ = await utils.get_image_and_msg(bot, ev)
+    ix=image.size[0] # 获取图片宽度
+    iy=image.size[1] # 获取图片高度
+    thumbSize = (1024, 1024)
+    if not image:
+        await bot.send(ev, '请输入需要分析的图片', at_sender=True)
+        return
+    if ix * iy > 1000000: # 图片像素大于100w将对其进行缩放
+        image.thumbnail(thumbSize, resample=Image.ANTIALIAS) # 图片等比例缩放
+        await bot.send(ev, "图片尺寸超过100万像素，将对其进行缩放", at_sender=True)
+    await bot.send(ev, f"正在使用Real-ESRGAN模型4倍超分图片，请稍后...")
+
+    img_msg = await utils.get_Real_ESRGAN(image)
+    if img_msg:
+        msg_list.append("使用Real-ESRGAN模型4倍超分图片结果")
+        msg_list.append(MessageSegment.image(img_msg))
+        await SendMessageProcess(bot, ev, msg_list) # 发送消息过程
+    else:
+        await bot.send(ev, '生成失败，肯定不是bot的错！', at_sender=True)
+        traceback.print_exc()
 
 @sv.scheduled_job('cron', hour='2', minute='36')
 async def set_ban_list():
