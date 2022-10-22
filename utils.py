@@ -11,6 +11,7 @@ import time
 import traceback
 from PIL import Image, ImageFont, ImageDraw
 from hoshino import R, aiorequests
+import hoshino
 from . import db
 from hoshino.typing import Message, MessageSegment
 from .config import get_config
@@ -312,7 +313,7 @@ async def fetch_data(url_status, _hash, max_retry_num=15):
         resj = await (await aiorequests.post(url_status, json={'hash': _hash})).json()
         if resj['status'] == 'PENDING' or resj['status'] == 'QUEUED':
             retrying += 1
-            print('正在生成，请稍后')
+            hoshino.logger.info('正在生成，请稍后')
             await asyncio.sleep(1)
             continue
         elif resj['status'] == 'COMPLETE':
