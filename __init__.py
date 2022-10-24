@@ -8,10 +8,11 @@ import re
 import json
 from hoshino import Service, priv
 from io import BytesIO
-from PIL import Image
+from . import magic
 
 sv_help = '''
 注：+ 号不用输入
+【主要功能】
 [ai绘图/生成涩图+tag] 关键词仅支持英文，用逗号隔开
 [以图绘图/以图生图+tag+图片] 注意图片尽量长宽都在765像素以下，不然会被狠狠地压缩
 [清晰术/图片超分+图片] 图片超分(默认2倍放大3倍降噪)
@@ -29,21 +30,37 @@ sv_help = '''
 [本群/个人XP缝合] 缝合tags进行绘图
 [图片鉴赏/生成tag+图片] 根据上传的图片生成tags
 [回复消息+以图绘图/上传图片/图片鉴赏/清晰术/二次元化] 回复消息使用上述功能
+[元素法典 xxx] xxx可以是多种魔咒,空格分离
+[元素法典咏唱 xxx] 发动黑暗法典，多种魔咒用空格分离
 
-以下为维护组使用(空格不能漏)：
+【元素法典目录】
+['水魔法', '空间法', '冰魔法', '核爆法', '风魔法', '流沙法', '白骨法', '星空法', '机凯种', 
+'森林冰', '幻之时', '雷男法', '圣光法', '苇名法', '自然法', '冰系改', '融合法', '虹彩法', 
+'暗锁法', '星冰乐', '火烧云', '城堡法', '雪月法', '结晶法', '黄昏法', '森林法', '泡泡法', 
+'蔷薇法', '月亮法', '森火法', '废土法', '机娘水', '黄金法', '死灵法', '水晶法', '水森法', 
+'冰火法', '龙骑士', '坠落法', '水下法', '秘境法', '摄影法', '望穿水', '天选术', '摩登法', 
+'血魔法', '绚丽术', '唤龙术', '龙机法', '战姬法', '炼银术', '星源法', '学院法', '浮世绘', 
+'星霞海', '冬雪法', '刻刻帝', '万物熔炉', '暗鸦法', '花 火法基础', '星之彩', '沉入星海', 
+'百溺法', '百溺法plus', '辉煌阳光法', '星鬓法', '森罗法', '星天使', '黄金律', '机凯姬 改', 
+'人鱼法', '末日', '碎梦', '幻碎梦', '血法改', '留影术', '西幻术', '星语术', '金石法', 
+'飘花法', '冰霜龙息plus', '冰霜龙息']
+
+【以下为维护组使用(空格不能漏)】
 [绘图 状态 <群号>] 查看本群或指定群的模块开启状态
 [绘图 设置 撤回时间 0~999 <群号>] 设置本群或指定群撤回时间(单位秒)，0为不撤回
 [绘图 设置 tags整理/数据录入/中英翻译/违禁词过滤 启用/关闭 <群号>] 启用或关闭对应模块
 [绘图 黑/白名单 新增/添加/移除/删除 群号] 修改黑白名单
 [黑名单列表/白名单列表] 查询黑白名单列表
 
-参数使用说明：
-加{}代表增加权重,可以加很多个,有消息称加入英语短句识别
+【参数使用说明】
+加{}代表增加权重,可以加很多个
 可选参数：
 &ntags=xxx 负面tags输入
 &shape=Portrait/Landscape/Square 默认Portrait竖图。Landscape(横图)，Square(方图)
 &scale=11 默认11，赋予AI自由度的参数，越高表示越遵守tags，一般保持11左右不变
 &seed=1111111 随机种子。在其他条件不变的情况下，相同的种子代表生成相同的图
+输入例：
+ai绘图 {{miku}},long hair&ntags=lowres,bad hands&shape=Portrait&scale=24&seed=150502
 '''.strip()
 
 sv = Service(
@@ -260,7 +277,7 @@ async def gen_pic(bot, ev: CQEvent):
         msg_list.append(resultmes)
         await SendMessageProcess(bot, ev, msg_list) # 发送消息过程
     except Exception as e:
-        await bot.send(ev, f"生成失败…{e}")
+        await bot.send(ev, f"生成失败…{type(e)}")
         return
 
 
@@ -314,7 +331,7 @@ async def gen_pic_from_pic(bot, ev: CQEvent):
         msg_list.append(resultmes)
         await SendMessageProcess(bot, ev, msg_list) # 发送消息过程
     except Exception as e:
-        await bot.send(ev, f"生成失败…{e}")
+        await bot.send(ev, f"生成失败：{type(e)}")
         traceback.print_exc()
         return
 
@@ -346,7 +363,7 @@ async def generate_tags(bot, ev):
             msg_list.append(result_msg)
             await SendMessageProcess(bot, ev, msg_list, withdraw=False) # 发送消息过程
     except Exception as e:
-        await bot.send(ev, f"鉴赏失败：{e}", at_sender=True)
+        await bot.send(ev, f"鉴赏失败：{type(e)}", at_sender=True)
         traceback.print_exc()
 
 @sv.on_keyword(('二次元化', '动漫化'))
@@ -367,7 +384,7 @@ async def animize(bot, ev):
             await bot.send(ev, '生成失败，图片被创死了！', at_sender=True)
             traceback.print_exc()
     except Exception as e:
-        await bot.send(ev, f"已报错：{e}", at_sender=True)
+        await bot.send(ev, f"已报错：{type(e)}", at_sender=True)
         traceback.print_exc()
 
 @sv.on_suffix(('XP排行', 'xp排行'))
@@ -382,7 +399,7 @@ async def get_xp_list(bot, ev):
             await bot.send(ev, f"已报错：{error_msg}", at_sender=True)
             return
     except Exception as e:
-        await bot.send(ev, f"已报错：{e}", at_sender=True)
+        await bot.send(ev, f"已报错：{type(e)}", at_sender=True)
         traceback.print_exc()
     
     msg_list.append(resultmes)
@@ -420,7 +437,7 @@ async def get_xp_pic(bot, ev):
         msg_list.append(resultmes)
         await SendMessageProcess(bot, ev, msg_list) # 发送消息过程
     except Exception as e:
-        await bot.send(ev, f"已报错：{e}", at_sender=True)
+        await bot.send(ev, f"已报错：{type(e)}", at_sender=True)
         traceback.print_exc()
 
 @sv.on_keyword(('上传pic', '上传图片'))
@@ -447,9 +464,9 @@ async def upload_header(bot, ev):
             await bot.send(ev, resultmes, at_sender=True)
         except Exception as e:
             traceback.print_exc()
-            await bot.send(ev, f"报错:{e}",at_sender=True)
+            await bot.send(ev, f"报错:{type(e)}",at_sender=True)
     except Exception as e:
-        await bot.send(ev, f"已报错：{e}", at_sender=True)
+        await bot.send(ev, f"已报错：{type(e)}", at_sender=True)
         traceback.print_exc()
 
 @sv.on_rex((r'^查看(.*)图片+(\s?([0-9]\d*))?'))
@@ -472,7 +489,7 @@ async def check_pic(bot, ev):
         msg_list.append(resultmes)
         await SendMessageProcess(bot, ev, msg_list, withdraw=False) # 发送消息过程
     except Exception as e:
-        await bot.send(ev, f"已报错：{e}", at_sender=True)
+        await bot.send(ev, f"已报错：{type(e)}", at_sender=True)
         traceback.print_exc()
 
 @sv.on_prefix(("点赞pic", "点赞图片"))
@@ -485,7 +502,7 @@ async def img_thumb(bot, ev):
         msg = db.add_pic_thumb(id)
         await bot.send(ev, msg, at_sender=True)
     except Exception as e:
-        await bot.send(ev, f"已报错：{e}", at_sender=True)
+        await bot.send(ev, f"已报错：{type(e)}", at_sender=True)
         traceback.print_exc()
 
 @sv.on_prefix(("删除pic", "删除图片"))
@@ -509,7 +526,7 @@ async def del_img(bot, ev):
         traceback.print_exc()
         return
     except Exception as e:
-        await bot.send(ev, f"报错:{e}",at_sender=True)
+        await bot.send(ev, f"报错:{type(e)}",at_sender=True)
         traceback.print_exc()
 
 @sv.on_rex((r'^快捷绘图\s?([0-9]\d*)\s?(.*)'))
@@ -552,7 +569,7 @@ async def quick_img(bot, ev):
         traceback.print_exc()
         return
     except Exception as e:
-        await bot.send(ev, f"报错:{e}",at_sender=True)
+        await bot.send(ev, f"报错:{type(e)}",at_sender=True)
         traceback.print_exc()
 
 @sv.on_prefix(('查看配方', '查看tag', '查看tags'))
@@ -575,7 +592,7 @@ async def get_img_peifang(bot, ev: CQEvent):
         await bot.send(ev, f"已报错：【{id}】号图片不存在！",at_sender=True)
         traceback.print_exc()
     except Exception as e:
-        await bot.send(ev, f"报错:{e}",at_sender=True)
+        await bot.send(ev, f"报错:{type(e)}",at_sender=True)
         traceback.print_exc()
 
 @sv.on_keyword(('清晰术', '图片超分', '图片放大'))
@@ -623,9 +640,9 @@ async def img_Real_CUGAN(bot, ev):
                 con = "denoise3x" # 如不指定降噪等级，默认3倍降噪
                 con_cn = "3倍"
             modelname = f"up{scale}x-latest-{con}.pth"
-            await bot.send(ev, f"放大倍率：{scale}倍   降噪等级：{con_cn}\n正在进行图片超分，请稍后...")
+            await bot.send(ev, f"放大倍率：{scale}倍    降噪等级：{con_cn}\n正在进行图片超分，请稍后...")
         except Exception as e:
-            await bot.send(bot, ev, f"超分参数输入错误：{e}")
+            await bot.send(bot, ev, f"超分参数输入错误：{type(e)}")
             return
         img_msg = await utils.get_Real_CUGAN(image, modelname)
 
@@ -637,7 +654,7 @@ async def img_Real_CUGAN(bot, ev):
             await bot.send(ev, "清晰术失败，服务器未返回图片数据", at_sender=True)
             traceback.print_exc()
     except Exception as e:
-        await bot.send(ev, f"清晰术失败：{e}", at_sender=True)
+        await bot.send(ev, f"清晰术失败：{type(e)}", at_sender=True)
         traceback.print_exc()
 
 async def img_Real_ESRGAN(bot, ev):
@@ -663,7 +680,37 @@ async def img_Real_ESRGAN(bot, ev):
             await bot.send(ev, '清晰术失败，服务器未返回图片数据', at_sender=True)
             traceback.print_exc()
     except Exception as e:
-        await bot.send(ev, f"清晰术失败：{e}", at_sender=True)
+        await bot.send(ev, f"清晰术失败：{type(e)}", at_sender=True)
+        traceback.print_exc()
+
+@sv.on_prefix("元素法典")
+async def magic_book(bot, ev):
+    try:
+        uid = ev['user_id']
+        gid = ev['group_id']
+        msg_list = []
+        msg = ev.message.extract_plain_text().strip()
+        tags, error_msg, node_msg = await magic.get_magic_book_(msg)
+        if len(error_msg):
+            await bot.send(ev, f"已报错：{error_msg}", at_sender=True)
+            return
+
+        num = 1
+        result, msg = check_lmt(uid, num, gid) # 检查群权限与个人次数
+        if result != 0:
+            await bot.send(ev, msg)
+            return
+        await bot.send(ev, f"元素法典已注入，正在进行魔法绘图，请稍后...\n(今日剩余{get_config('base', 'daily_max') - tlmt.get_num(uid)}次)", at_sender=True)
+
+        result_msg,error_msg = await utils.get_imgdata_magic(tags)
+        if len(error_msg):
+            await bot.send(ev, f"已报错：{error_msg}", at_sender=True)
+            return
+        msg_list.append(result_msg)
+        msg_list.append(node_msg)
+        await SendMessageProcess(bot, ev, msg_list) # 发送消息过程
+    except Exception as e:
+        await bot.send(ev, f"已报错：{type(e)}", at_sender=True)
         traceback.print_exc()
 
 @sv.scheduled_job('cron', hour='2', minute='36')

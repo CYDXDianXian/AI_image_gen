@@ -4,7 +4,6 @@ import calendar
 import json
 import math
 from pathlib import Path
-import random
 from io import BytesIO
 import re
 import time
@@ -52,6 +51,10 @@ def text_to_image(text: str) -> Image.Image:
 
 
 def key_worlds_removal(msg):
+    """
+    replace() 方法用另一个指定的短语替换一个指定的短语。
+    如果未指定其他内容，则将替换所有出现的指定短语。
+    """
     return msg.replace('以图生图', '').replace('以图绘图', '')
 
 
@@ -60,16 +63,6 @@ def isContainChinese(string: str) -> bool:
         if ('\u4e00' <= char <= '\u9fa5'):
             return True
     return False
-
-
-def generate_code(code_len=6):
-    all_char = '0123456789qazwsxedcrfvtgbyhnujmikolp'
-    index = len(all_char) - 1
-    code = ''
-    for _ in range(code_len):
-        num = random.randint(0, index)
-        code += all_char[num]
-    return code
 
 
 async def save_pic(image, pic_hash):
@@ -155,9 +148,7 @@ async def get_imgdata(tags,way=1,shape="Portrait",strength=get_config('NovelAI',
         if len(imgdata) < 5000:
             error_msg = "token冷却中~"
     except Exception as e:
-        error_msg = f"超时了~"
-    i=999
-    error_msg = ""
+        error_msg = f"请求超时：{type(e)}"
     try:
         msg=""
         msgdata = json.loads(re.findall(r'{"steps".+?}',str(imgdata))[0]) # 使用r''来声明原始字符串，避免转义
@@ -170,7 +161,7 @@ async def get_imgdata(tags,way=1,shape="Portrait",strength=get_config('NovelAI',
         img = Image.open(BytesIO(imgdata)).convert("RGB") # 载入图片并转换色彩空间为RGB
         imgmes = pic2b64(img) # 将图片转为base64
     except Exception as e:
-        error_msg += f"处理图像失败：{e}"
+        error_msg += f"处理图像失败：{type(e)}"
         return resultmes,error_msg
     resultmes = f"{MessageSegment.image(imgmes)}{msg}\ntags:{tags}" # MessageSegment.image(imgmes)将图片转为CQ码
     return resultmes,error_msg
@@ -259,7 +250,7 @@ async def get_Real_ESRGAN(img):
             i_b64,
             "anime"
         ],
-        "session_hash": generate_code(11)
+        "session_hash": str(uuid.uuid1())
     }
     res = await (await aiorequests.post(url_predict, json=params)).json()
     if 'data' in res:
@@ -271,9 +262,8 @@ async def get_Real_ESRGAN(img):
 
 
 async def quene_fetch_(url,_hash,max_try):
-    #报错信息
     result_msg = ""
-    error_msg = ""
+    error_msg = "" #报错信息
     i = 0
     url_status = f'{url}/api/queue/status/'
     while i< max_try :
@@ -293,7 +283,7 @@ async def quene_fetch_(url,_hash,max_try):
             return result_msg,error_msg
 
 
-async def cartoonization(image=Image, max_try=60):
+async def cartoonization(image: Image, max_try=60):
     '''
     图片卡通化
     '''
@@ -315,7 +305,7 @@ async def cartoonization(image=Image, max_try=60):
     try:
         _hash = (await(await aiorequests.post(url_push, json=json)).json())['hash'] #获取当前任务的hash
     except Exception as e:
-        error_msg = f"尝试排队 失败原因:{e}"
+        error_msg = f"尝试排队 失败原因:{type(e)}"
         return result_msg,error_msg
     result_msg,error_msg = await quene_fetch_(url,_hash,max_try) #获取结果 resj['data']['data'][0]
     if error_msg != "":
@@ -323,12 +313,16 @@ async def cartoonization(image=Image, max_try=60):
     result_msg = result_msg[0]
     result_img = base64.b64decode(''.join(result_msg.split(',')[1:])) # 截取列表中的第2项到结尾获取base64并解码为图片
     result_img = Image.open(BytesIO(result_img)).convert("RGB") # 载入图片并转换色彩空间为RGB
-    pic2b64(result_img)
     result_msg = MessageSegment.image(pic2b64(result_img)) # 图片转base64并转cq码
     return result_msg,error_msg
     
 
-async def get_tags(image=Image,max_try=60):
+async def get_tags(image: Image, max_try=60):
+    '''
+    DeepDanbooru图片鉴赏
+    分析图片并获取对应tags
+    置信度取70%以上
+    '''
     url = "https://hf.space/embed/NoCrypt/DeepDanbooru_string"
     result_msg = ""
     error_msg = ""
@@ -345,10 +339,28 @@ async def get_tags(image=Image,max_try=60):
     try:
         _hash = (await(await aiorequests.post(url_push, json=json)).json())['hash'] #获取当前任务的hash
     except Exception as e:
-        error_msg = f"尝试排队 失败原因:{e}"
+        error_msg = f"尝试排队 失败原因:{type(e)}"
         return result_msg,error_msg
     result_msg,error_msg = await quene_fetch_(url,_hash,max_try) #获取结果 resj['data']['data']
     return result_msg[1], error_msg
+
+async def get_imgdata_magic(tags):#way=1时为get，way=0时为post
+    error_msg =""  #报错信息
+    result_msg = ""
+
+    # 设置API
+    api_url = get_config('NovelAI', 'api')
+    token = get_config('NovelAI', 'token')
+    try:
+        url = (f"{api_url}got_image") + (f"?tags={tags}")+ (f"&token={token}")
+        imgdata = await (await aiorequests.get(url, timeout=180)).content
+        if len(imgdata) < 5000:
+            error_msg = "token冷却中~"
+    except Exception as e:
+        error_msg = f"请求超时：{type(e)}"
+    img = Image.open(BytesIO(imgdata)).convert("RGB")
+    result_msg = MessageSegment.image(pic2b64(img)) # 图片转base64并转cq码
+    return result_msg,error_msg
 
 async def img_make(msglist,page = 1):
     num = len(msglist)

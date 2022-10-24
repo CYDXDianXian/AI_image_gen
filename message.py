@@ -4,7 +4,7 @@ import hoshino
 from .config import get_config, get_group_config
 
 
-def render_forward_msg(msg_list: list, uid=2854196306, name='小冰'):
+def render_forward_msg(msg_list: list, uid=2854196306, name='会画画的小冰'):
 	forward_msg = []
 	for msg in msg_list:
 		forward_msg.append({
@@ -38,7 +38,7 @@ async def send_msg(msg_list, ev):
 		await asyncio.sleep(1)
 	return result_list
 
-async def SendMessageProcess(bot, ev, msg_list=list, withdraw = True):
+async def SendMessageProcess(bot, ev, msg_list: list, withdraw = True):
 	'''
 	发送消息过程，并判断是否撤回
 	'''
