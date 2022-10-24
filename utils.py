@@ -50,12 +50,6 @@ def text_to_image(text: str) -> Image.Image:
         draw.text((padding, padding + j * (margin + h)), text, font=font, fill=(0, 0, 0))
     return MessageSegment.image(pic2b64(i)) # 图片转base64并转cq码
 
-# def get_image_hash(content):
-#     ls_f = base64.b64encode(BytesIO(content).read())
-#     imgdata = base64.b64decode(ls_f)
-#     pic_hash = hash(imgdata)
-#     return pic_hash
-
 
 def key_worlds_removal(msg):
     return msg.replace('以图生图', '').replace('以图绘图', '')
@@ -77,35 +71,6 @@ def generate_code(code_len=6):
         code += all_char[num]
     return code
 
-
-# async def get_pic_d(msg):
-#     error_msg = ""  # 报错信息
-#     b_io = ""
-#     shape = "Portrait"
-#     size = 0
-#     try:
-#         image_url = re.search(r"\[CQ:image,file=(.*)url=(.*?)[,|\]]", str(msg))
-#         url = image_url.group(2)
-#     except Exception as e:
-#         error_msg = "你的图片呢？"
-#         return b_io,shape,error_msg,size
-#     try:
-#         img_data = await aiorequests.get(url)
-#         image = Image.open(BytesIO(await img_data.content))
-#         a,b = image.size
-#         size = a*b
-#         c = a/b
-#         s = [0.6667,1.5,1]
-#         s1 =["Portrait","Landscape","Square"]
-#         shape=s1[s.index(nsmallest(1, s, key=lambda x: abs(x-c))[0])]#判断形状
-#         image = image.convert("RGB")
-#         b_io = BytesIO()
-#         image.save(b_io, format="JPEG")
-
-#     except Exception as e:
-#         error_msg = "图片处理失败" # 报错信息
-#         return b_io,shape,error_msg,size
-#     return b_io,shape,error_msg,size
 
 async def save_pic(image, pic_hash):
     error_msg = ""
@@ -304,33 +269,6 @@ async def get_Real_ESRGAN(img):
     else:
         return None
 
-# async def fetch_data(url_status, _hash, max_retry_num=30):
-#     error_msg = ""
-#     retrying = 0
-#     while True:
-#         if retrying >= max_retry_num:
-#             return None
-
-#         resj = await (await aiorequests.post(url_status, json={'hash': _hash})).json()
-#         await asyncio.sleep(1) # 等待1秒
-#         if resj['status'] == 'PENDING' or resj['status'] == 'QUEUED':
-#             retrying += 1
-#             hoshino.logger.info(f'服务器未返回数据，正在进行第{retrying}次重试！')
-#             continue
-#         elif resj['status'] == 'COMPLETE':
-#             result_data = resj['data']['data'][0]
-#             if isinstance(result_data, str):
-#                 result_img = b64decode(''.join(result_data.split(',')[1:])) # 截取列表中的第2项到结尾获取base64并解码为图片
-#                 result_img = Image.open(BytesIO(result_img)).convert("RGB") # 载入图片并转换色彩空间为RGB
-#                 img_msg = pic2b64(result_img) # 图片转base64
-#                 return img_msg
-#             elif isinstance(result_data, dict) and 'confidences' in result_data:
-#                 return result_data['confidences']
-#             else:
-#                 error_msg = f"状态码:{resj['status']} 失败原因:{resj['data']}"
-#                 return error_msg
-#         else:
-#             return None
 
 async def quene_fetch_(url,_hash,max_try):
     #报错信息
@@ -388,49 +326,7 @@ async def cartoonization(image=Image, max_try=60):
     pic2b64(result_img)
     result_msg = MessageSegment.image(pic2b64(result_img)) # 图片转base64并转cq码
     return result_msg,error_msg
-
-# async def cartoonization(image):
-#     '''
-#     图片卡通化
-#     '''
-#     url_push = 'https://hf.space/embed/hylee/White-box-Cartoonization/api/queue/push/'
-
-#     params = {
-#         "data": [],
-#         "cleared": False,
-#         "session_hash": generate_code(11),
-#         "action": "predict",
-#         "example_id": None,
-#     }
-
-#     imageData = BytesIO()
-#     image.save(imageData, format='JPEG', quality=90)
-#     params['data'] = ['data:image/jpeg;base64,' + str(b64encode(imageData.getvalue()))[2:-1]]
-#     _hash = (await (await aiorequests.post(url_push, json=params)).json())['hash']
-#     resj = await fetch_data('https://hf.space/embed/hylee/White-box-Cartoonization/api/queue/status/', _hash)
-#     return resj
-
-# async def get_tags(image):
-#     error_msg = "" # 报错信息
-#     url_push = "https://hf.space/embed/NoCrypt/DeepDanbooru_string/api/queue/push/"
-
-#     params = {
-#         "fn_index": 0,
-#         "data": [],
-#         "session_hash": generate_code(11),
-#         "action": "predict"
-#     }
-
-#     imageData = BytesIO()
-#     image.save(imageData, format='JPEG', quality=90)
-#     params["data"] = ["data:image/jpeg;base64," + str(b64encode(imageData.getvalue()))[2:-1], 0.5]  # 0.5的阈值
-#     try:
-#         _hash = (await (await aiorequests.post(url_push, json=params)).json())['hash']
-#     except Exception as e:
-#         error_msg = f"尝试排队 失败原因:{e}"
-#         traceback.print_exc()
-#     resj = await fetch_data('https://hf.space/embed/NoCrypt/DeepDanbooru_string/api/queue/status/', _hash)
-#     return resj, error_msg
+    
 
 async def get_tags(image=Image,max_try=60):
     url = "https://hf.space/embed/NoCrypt/DeepDanbooru_string"
