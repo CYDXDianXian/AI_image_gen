@@ -329,136 +329,164 @@ async def generate_tags(bot, ev):
     # if result != 0:
     #     await bot.send(ev, msg)
     #     return
-
-    msg_list = []
-    image, _, _ = await utils.get_image_and_msg(bot, ev)
-    if not image:
-        await bot.send(ev, '请输入需要分析的图片', at_sender=True)
-        return
-    await bot.send(ev, f"正在生成tags，请稍后...")
-    json_tags = await utils.get_tags(image)
-    if json_tags:
-        msg_list.append("图片鉴赏结果为如下")
-        msg_list.append(json_tags)
-        await SendMessageProcess(bot, ev, msg_list, withdraw=False) # 发送消息过程
-    else:
-        await bot.send(ev, "鉴赏失败，服务器未返回图片数据", at_sender=True)
+    try:
+        msg_list = []
+        image, _, _ = await utils.get_image_and_msg(bot, ev)
+        if not image:
+            await bot.send(ev, '请输入需要分析的图片', at_sender=True)
+            return
+        await bot.send(ev, f"正在生成tags，请稍后...")
+        json_tags = await utils.get_tags(image)
+        if json_tags:
+            msg_list.append("图片鉴赏结果为如下")
+            msg_list.append(json_tags)
+            await SendMessageProcess(bot, ev, msg_list, withdraw=False) # 发送消息过程
+        else:
+            await bot.send(ev, "鉴赏失败，服务器未返回图片数据", at_sender=True)
+            traceback.print_exc()
+            return
+    except Exception as e:
+        await bot.send(ev, f"鉴赏失败，{e}", at_sender=True)
         traceback.print_exc()
 
 @sv.on_keyword(('二次元化', '动漫化'))
 async def animize(bot, ev):
-    msg_list = []
-    image, _, _ = await utils.get_image_and_msg(bot, ev)
-    if not image:
-        await bot.send(ev, '请输入需要分析的图片', at_sender=True)
-        return
-    await bot.send(ev, f"正在进入二次元，请稍后...")
+    try:
+        msg_list = []
+        image, _, _ = await utils.get_image_and_msg(bot, ev)
+        if not image:
+            await bot.send(ev, '请输入需要分析的图片', at_sender=True)
+            return
+        await bot.send(ev, f"正在进入二次元，请稍后...")
 
-    img_msg = await utils.cartoonization(image)
-    if img_msg:
-        msg_list.append(MessageSegment.image(img_msg))
-        await SendMessageProcess(bot, ev, msg_list) # 发送消息过程
-    else:
-        await bot.send(ev, '生成失败，图片被创死了！', at_sender=True)
+        img_msg = await utils.cartoonization(image)
+        if img_msg:
+            msg_list.append(MessageSegment.image(img_msg))
+            await SendMessageProcess(bot, ev, msg_list) # 发送消息过程
+        else:
+            await bot.send(ev, '生成失败，图片被创死了！', at_sender=True)
+            traceback.print_exc()
+    except Exception as e:
+        await bot.send(ev, f"已报错，{e}", at_sender=True)
         traceback.print_exc()
 
 @sv.on_suffix(('XP排行', 'xp排行'))
 async def get_xp_list(bot, ev):
-    msg_list = []
-    msg = ev.message.extract_plain_text()
-    gid = ev.group_id
-    uid = ev.user_id
-    resultmes,error_msg = await utils.get_xp_list_(msg,gid,uid)
-    if len(error_msg):
-        await bot.send(ev, f"已报错：{error_msg}", at_sender=True)
-        return
+    try:
+        msg_list = []
+        msg = ev.message.extract_plain_text()
+        gid = ev.group_id
+        uid = ev.user_id
+        resultmes,error_msg = await utils.get_xp_list_(msg,gid,uid)
+        if len(error_msg):
+            await bot.send(ev, f"已报错：{error_msg}", at_sender=True)
+            return
+    except Exception as e:
+        await bot.send(ev, f"已报错，{e}", at_sender=True)
+        traceback.print_exc()
     
     msg_list.append(resultmes)
     await SendMessageProcess(bot, ev, msg_list, withdraw=False) # 发送消息过程
 
 @sv.on_suffix(('XP缝合', 'xp缝合'))
 async def get_xp_pic(bot, ev):
-    msg_list = []
-    gid = ev.group_id
-    uid = ev.user_id
-    msg = ev.message.extract_plain_text()
-    tags,error_msg = await utils.get_xp_pic_(msg,gid,uid)
-    if len(error_msg):
-        await bot.send(ev, f"已报错：{error_msg}", at_sender=True)
-        return
-    
-    num = 1
-    result, msg = check_lmt(uid, num, gid) # 检查群权限与个人次数
-    if result != 0:
-        await bot.send(ev, msg)
-        return
-    await bot.send(ev, f"正在生成，请稍后...\n(今日剩余{get_config('base', 'daily_max') - tlmt.get_num(uid)}次)", at_sender=True)
-
-    tags,error_msg,tags_guolv=await process_tags(gid,uid,tags) #tags处理过程
-    if len(error_msg):
-        msg_list.append(f"已报错：{error_msg}")
-    if len(tags_guolv):
-        msg_list.append(f"已过滤：{tags_guolv}")
-    resultmes,error_msg = await utils.get_imgdata(tags) # 绘图过程
-    if len(error_msg):
+    try:
+        msg_list = []
+        gid = ev.group_id
+        uid = ev.user_id
+        msg = ev.message.extract_plain_text()
+        tags,error_msg = await utils.get_xp_pic_(msg,gid,uid)
+        if len(error_msg):
             await bot.send(ev, f"已报错：{error_msg}", at_sender=True)
             return
-    
-    msg_list.append(resultmes)
-    await SendMessageProcess(bot, ev, msg_list) # 发送消息过程
+        
+        num = 1
+        result, msg = check_lmt(uid, num, gid) # 检查群权限与个人次数
+        if result != 0:
+            await bot.send(ev, msg)
+            return
+        await bot.send(ev, f"正在生成，请稍后...\n(今日剩余{get_config('base', 'daily_max') - tlmt.get_num(uid)}次)", at_sender=True)
+
+        tags,error_msg,tags_guolv=await process_tags(gid,uid,tags) #tags处理过程
+        if len(error_msg):
+            msg_list.append(f"已报错：{error_msg}")
+        if len(tags_guolv):
+            msg_list.append(f"已过滤：{tags_guolv}")
+        resultmes,error_msg = await utils.get_imgdata(tags) # 绘图过程
+        if len(error_msg):
+                await bot.send(ev, f"已报错：{error_msg}", at_sender=True)
+                return
+        
+        msg_list.append(resultmes)
+        await SendMessageProcess(bot, ev, msg_list) # 发送消息过程
+    except Exception as e:
+        await bot.send(ev, f"已报错，{e}", at_sender=True)
+        traceback.print_exc()
 
 @sv.on_keyword(('上传pic', '上传图片'))
 async def upload_header(bot, ev):
-    image, pic_hash, msg = await utils.get_image_and_msg(bot, ev) # 获取图片过程
-    if not image:
-        await bot.send(ev, "请输入要上传的图片", at_sender=True)
-        return
-    pic_dir,error_msg = await utils.save_pic(image, pic_hash)
-    if len(error_msg):
-        await bot.send(ev, f"已报错：{error_msg}", at_sender=True)
-        return
     try:
-        seed=(str(msg).split(f"scale:")[0]).split('seed:')[1].strip()
-        scale=(str(msg).split(f"tags:")[0]).split('scale:')[1].strip()
-        tags=(str(msg).split(f"tags:")[1])
-        pic_msg = tags + f"&seed={seed}" + f"&scale={scale}"
-    except:
-        await bot.send(ev, '格式出错', at_sender=True)
-        return
-    try:
-        resultmes = db.add_pic(ev.group_id, ev.user_id, pic_hash, str(pic_dir), pic_msg) # pic_dir是Path路径对象，必须转为str后数据库才能正常录入
-        await bot.send(ev, resultmes, at_sender=True)
+        image, pic_hash, msg = await utils.get_image_and_msg(bot, ev) # 获取图片过程
+        if not image:
+            await bot.send(ev, "请输入要上传的图片", at_sender=True)
+            return
+        pic_dir,error_msg = await utils.save_pic(image, pic_hash)
+        if len(error_msg):
+            await bot.send(ev, f"已报错：{error_msg}", at_sender=True)
+            return
+        try:
+            seed=(str(msg).split(f"scale:")[0]).split('seed:')[1].strip()
+            scale=(str(msg).split(f"tags:")[0]).split('scale:')[1].strip()
+            tags=(str(msg).split(f"tags:")[1])
+            pic_msg = tags + f"&seed={seed}" + f"&scale={scale}"
+        except:
+            await bot.send(ev, '格式出错', at_sender=True)
+            return
+        try:
+            resultmes = db.add_pic(ev.group_id, ev.user_id, pic_hash, str(pic_dir), pic_msg) # pic_dir是Path路径对象，必须转为str后数据库才能正常录入
+            await bot.send(ev, resultmes, at_sender=True)
+        except Exception as e:
+            traceback.print_exc()
+            await bot.send(ev, f"报错:{e}",at_sender=True)
     except Exception as e:
+        await bot.send(ev, f"已报错，{e}", at_sender=True)
         traceback.print_exc()
-        await bot.send(ev, f"报错:{e}",at_sender=True)
 
 @sv.on_rex((r'^查看(.*)图片+(\s?([0-9]\d*))?'))
 async def check_pic(bot, ev):
-    msg_list = []
-    gid = ev.group_id
-    uid = ev.user_id
-    match = ev['match']
-    msg = match.group(1)
     try:
-        page = int(match.group(2).lstrip())
-    except:
-        page = 1
-    resultmes,error_msg = await utils.check_pic_(gid,uid,msg,page)
-    if len(error_msg):
-        await bot.send(ev, f"已报错：{error_msg}", at_sender=True)
-        return
-        
-    msg_list.append(resultmes)
-    await SendMessageProcess(bot, ev, msg_list, withdraw=False) # 发送消息过程
+        msg_list = []
+        gid = ev.group_id
+        uid = ev.user_id
+        match = ev['match']
+        msg = match.group(1)
+        try:
+            page = int(match.group(2).lstrip())
+        except:
+            page = 1
+        resultmes,error_msg = await utils.check_pic_(gid,uid,msg,page)
+        if len(error_msg):
+            await bot.send(ev, f"已报错：{error_msg}", at_sender=True)
+            return
+            
+        msg_list.append(resultmes)
+        await SendMessageProcess(bot, ev, msg_list, withdraw=False) # 发送消息过程
+    except Exception as e:
+        await bot.send(ev, f"已报错，{e}", at_sender=True)
+        traceback.print_exc()
 
 @sv.on_prefix(("点赞pic", "点赞图片"))
 async def img_thumb(bot, ev):
-    id = ev.message.extract_plain_text().strip()
-    if not id.isdigit() and '*' not in id:
-        await bot.send(ev, '图片ID呢???')
-        return
-    msg = db.add_pic_thumb(id)
-    await bot.send(ev, msg, at_sender=True)
+    try:
+        id = ev.message.extract_plain_text().strip()
+        if not id.isdigit() and '*' not in id:
+            await bot.send(ev, '图片ID呢???')
+            return
+        msg = db.add_pic_thumb(id)
+        await bot.send(ev, msg, at_sender=True)
+    except Exception as e:
+        await bot.send(ev, f"已报错，{e}", at_sender=True)
+        traceback.print_exc()
 
 @sv.on_prefix(("删除pic", "删除图片"))
 async def del_img(bot, ev):
@@ -479,6 +507,7 @@ async def del_img(bot, ev):
     except ValueError as e:
         await bot.send(ev, f"已报错：【{id}】号图片不存在！",at_sender=True)
         traceback.print_exc()
+        return
     except Exception as e:
         await bot.send(ev, f"报错:{e}",at_sender=True)
         traceback.print_exc()
