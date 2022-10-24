@@ -3,7 +3,7 @@ import traceback
 import hoshino
 from . import db
 from .packedfiles import default_config
-from hoshino.typing import CQEvent, MessageSegment
+from hoshino.typing import CQEvent
 import re
 import json
 from hoshino import Service, priv
@@ -14,8 +14,8 @@ sv_help = '''
 注：+ 号不用输入
 [ai绘图/生成涩图+tag] 关键词仅支持英文，用逗号隔开
 [以图绘图/以图生图+tag+图片] 注意图片尽量长宽都在765像素以下，不然会被狠狠地压缩
-[清晰术/上采样+图片] 图片超分(默认四倍放大三倍降噪)
-[清晰术+双重/三重/四重吟唱+强力术式/中等术式/弱术式/不变式/原式] 图片放大倍率与降噪倍率选项
+[清晰术/图片超分+图片] 图片超分(默认2倍放大3倍降噪)
+[清晰术+2倍/3倍/4倍放大+不/保守/强力降噪] 图片放大倍率与降噪倍率选项
 [二次元化/动漫化+图片] 照片二次元化
 [上传pic/上传图片] 务必携带seed/scale/tags等参数
 [查看配方/查看tag+图片ID] 查看已上传图片的配方
@@ -40,6 +40,7 @@ sv_help = '''
 参数使用说明：
 加{}代表增加权重,可以加很多个,有消息称加入英语短句识别
 可选参数：
+&ntags=xxx 负面tags输入
 &shape=Portrait/Landscape/Square 默认Portrait竖图。Landscape(横图)，Square(方图)
 &scale=11 默认11，赋予AI自由度的参数，越高表示越遵守tags，一般保持11左右不变
 &seed=1111111 随机种子。在其他条件不变的情况下，相同的种子代表生成相同的图
@@ -224,7 +225,7 @@ async def send_config(bot, ev):
 
 @sv.on_fullmatch(('ai绘图帮助', '生成涩图帮助', '生成色图帮助'))
 async def gen_pic_help(bot, ev: CQEvent):
-    await bot.send(ev, MessageSegment.image(utils.pic2b64(utils.text_to_image(sv_help))), at_sender=True)
+    await bot.send(ev, utils.text_to_image(sv_help), at_sender=True)
 
 
 @sv.on_prefix(('ai绘图', '生成色图', '生成涩图'))
@@ -301,8 +302,7 @@ async def gen_pic_from_pic(bot, ev: CQEvent):
             image_shape = "Square"
         else:
             image_shape = "Portrait"
-        thumbSize = (768, 768)
-        image.thumbnail(thumbSize, resample=Image.ANTIALIAS) # 图片缩放
+        image.thumbnail(size=(768, 768)) # 图片缩放
         imageData = BytesIO() # 创建二进制缓存
         image.save(imageData, format='png') # 保存图片至缓存中，png格式为无损格式
         
@@ -336,17 +336,17 @@ async def generate_tags(bot, ev):
             await bot.send(ev, '请输入需要分析的图片', at_sender=True)
             return
         await bot.send(ev, f"正在生成tags，请稍后...")
-        json_tags = await utils.get_tags(image)
-        if json_tags:
-            msg_list.append("图片鉴赏结果为如下")
-            msg_list.append(json_tags)
-            await SendMessageProcess(bot, ev, msg_list, withdraw=False) # 发送消息过程
-        else:
+        result_msg,error_msg = await utils.get_tags(image)
+        if error_msg:
             await bot.send(ev, "鉴赏失败，服务器未返回图片数据", at_sender=True)
             traceback.print_exc()
             return
+        else:
+            msg_list.append("图片鉴赏结果为如下")
+            msg_list.append(result_msg)
+            await SendMessageProcess(bot, ev, msg_list, withdraw=False) # 发送消息过程
     except Exception as e:
-        await bot.send(ev, f"鉴赏失败，{e}", at_sender=True)
+        await bot.send(ev, f"鉴赏失败：{e}", at_sender=True)
         traceback.print_exc()
 
 @sv.on_keyword(('二次元化', '动漫化'))
@@ -361,13 +361,13 @@ async def animize(bot, ev):
 
         img_msg = await utils.cartoonization(image)
         if img_msg:
-            msg_list.append(MessageSegment.image(img_msg))
+            msg_list.append(img_msg)
             await SendMessageProcess(bot, ev, msg_list) # 发送消息过程
         else:
             await bot.send(ev, '生成失败，图片被创死了！', at_sender=True)
             traceback.print_exc()
     except Exception as e:
-        await bot.send(ev, f"已报错，{e}", at_sender=True)
+        await bot.send(ev, f"已报错：{e}", at_sender=True)
         traceback.print_exc()
 
 @sv.on_suffix(('XP排行', 'xp排行'))
@@ -382,7 +382,7 @@ async def get_xp_list(bot, ev):
             await bot.send(ev, f"已报错：{error_msg}", at_sender=True)
             return
     except Exception as e:
-        await bot.send(ev, f"已报错，{e}", at_sender=True)
+        await bot.send(ev, f"已报错：{e}", at_sender=True)
         traceback.print_exc()
     
     msg_list.append(resultmes)
@@ -420,7 +420,7 @@ async def get_xp_pic(bot, ev):
         msg_list.append(resultmes)
         await SendMessageProcess(bot, ev, msg_list) # 发送消息过程
     except Exception as e:
-        await bot.send(ev, f"已报错，{e}", at_sender=True)
+        await bot.send(ev, f"已报错：{e}", at_sender=True)
         traceback.print_exc()
 
 @sv.on_keyword(('上传pic', '上传图片'))
@@ -449,7 +449,7 @@ async def upload_header(bot, ev):
             traceback.print_exc()
             await bot.send(ev, f"报错:{e}",at_sender=True)
     except Exception as e:
-        await bot.send(ev, f"已报错，{e}", at_sender=True)
+        await bot.send(ev, f"已报错：{e}", at_sender=True)
         traceback.print_exc()
 
 @sv.on_rex((r'^查看(.*)图片+(\s?([0-9]\d*))?'))
@@ -472,7 +472,7 @@ async def check_pic(bot, ev):
         msg_list.append(resultmes)
         await SendMessageProcess(bot, ev, msg_list, withdraw=False) # 发送消息过程
     except Exception as e:
-        await bot.send(ev, f"已报错，{e}", at_sender=True)
+        await bot.send(ev, f"已报错：{e}", at_sender=True)
         traceback.print_exc()
 
 @sv.on_prefix(("点赞pic", "点赞图片"))
@@ -485,7 +485,7 @@ async def img_thumb(bot, ev):
         msg = db.add_pic_thumb(id)
         await bot.send(ev, msg, at_sender=True)
     except Exception as e:
-        await bot.send(ev, f"已报错，{e}", at_sender=True)
+        await bot.send(ev, f"已报错：{e}", at_sender=True)
         traceback.print_exc()
 
 @sv.on_prefix(("删除pic", "删除图片"))
@@ -554,7 +554,6 @@ async def quick_img(bot, ev):
     except Exception as e:
         await bot.send(ev, f"报错:{e}",at_sender=True)
         traceback.print_exc()
-        return
 
 @sv.on_prefix(('查看配方', '查看tag', '查看tags'))
 async def get_img_peifang(bot, ev: CQEvent):
@@ -579,7 +578,7 @@ async def get_img_peifang(bot, ev: CQEvent):
         await bot.send(ev, f"报错:{e}",at_sender=True)
         traceback.print_exc()
 
-@sv.on_keyword(('清晰术', '清晰化', '上采样'))
+@sv.on_keyword(('清晰术', '图片超分', '图片放大'))
 async def image4x(bot, ev):
     if get_config("image4x", "Real-CUGAN"):
         await img_Real_CUGAN(bot, ev)
@@ -597,79 +596,74 @@ async def img_Real_CUGAN(bot, ev):
             return
         ix=image.size[0] # 获取图片宽度
         iy=image.size[1] # 获取图片高度
-        thumbSize = (1024, 1024)
-        if ix * iy > 1000000: # 图片像素大于100w将对其进行缩放
-            image.thumbnail(thumbSize, resample=Image.ANTIALIAS) # 图片等比例缩放
-            await bot.send(ev, "图片尺寸超过100万像素，将对其进行缩放", at_sender=True)
-        fashu = ev.message.extract_plain_text()
-        scale = 2
-        con = "conservative"
-        if "双重吟唱" in fashu:
-            scale = 2
-        elif "三重吟唱" in fashu:
-            scale = 3
-        elif "四重吟唱" in fashu:
-            scale = 4
-        else:
-            scale = 4 # 如不指定放大倍数，则默认放大4倍
+        if ix * iy > 1500000: # 图片像素大于150万像素的，会对其进行缩放
+            image.thumbnail(size=(1300, 1300)) # 图片等比例缩放
+            await bot.send(ev, f"图片尺寸超过150万像素，将对其进行缩放", at_sender=True)
+        msg = ev.message.extract_plain_text().strip()
+        try:
+            if "二倍放大" in msg or "2倍放大" in msg:
+                scale = 2
+            elif "三倍放大" in msg or "3倍放大" in msg:
+                scale = 3
+            elif "四倍放大" in msg or "4倍放大" in msg:
+                scale = 4
+            else:
+                scale = 2 # 如不指定放大倍数，则默认放大2倍
 
-        if "强力术式" in fashu:
-            con = "denoise3x"
-        elif "中等术式" in fashu:
-            con = "no-denoise"
-            if scale == 2:
-                con = "denoise2x"
-        elif "弱术式" in fashu:
-            con = "no-denoise"
-            if scale == 2:
-                con = "denoise1x"
-        elif "不变式" in fashu:
-            con = "no-denoise"
-        elif "原式" in fashu:
-            con = "conservative"
-        else:
-            con = "denoise3x" # 如不指定降噪等级，默认3倍降噪
-
-        modelname = f"up{scale}x-latest-{con}.pth"
-        await bot.send(ev, f"鸣大钟一次，推动杠杆，启动活塞和泵；鸣大钟两次，按下按钮，发动机点火，点燃涡轮，注入生命；鸣大钟三次，齐声歌唱，赞美万机之神！大清晰术【{con}】【{scale}】重唱！")
+            if "保守降噪" in msg:
+                con = "conservative"
+                con_cn = "保守"
+            elif "强力降噪" in msg or "三倍降噪" in msg or "3倍降噪" in msg:
+                con = "denoise3x"
+                con_cn = "3倍"
+            elif "不降噪" in msg:
+                con = "no-denoise"
+                con_cn = "不降噪"
+            else:
+                con = "denoise3x" # 如不指定降噪等级，默认3倍降噪
+                con_cn = "3倍"
+            modelname = f"up{scale}x-latest-{con}.pth"
+            await bot.send(ev, f"放大倍率：{scale}倍   降噪等级：{con_cn}\n正在进行图片超分，请稍后...")
+        except Exception as e:
+            await bot.send(bot, ev, f"超分参数输入错误：{e}")
+            return
         img_msg = await utils.get_Real_CUGAN(image, modelname)
 
         if img_msg:
-            msg_list.append(f"【{scale}】重唱【{con}】分支大清晰术！")
-            msg_list.append(MessageSegment.image(img_msg))
+            msg_list.append(f"放大倍率：{scale}倍\n降噪等级：{con_cn}\n使用模型：Real_CUGAN")
+            msg_list.append(img_msg)
             await SendMessageProcess(bot, ev, msg_list) # 发送消息过程
         else:
             await bot.send(ev, "清晰术失败，服务器未返回图片数据", at_sender=True)
             traceback.print_exc()
     except Exception as e:
-        await bot.send(ev, f"清晰术失败,{e}", at_sender=True)
+        await bot.send(ev, f"清晰术失败：{e}", at_sender=True)
         traceback.print_exc()
 
 async def img_Real_ESRGAN(bot, ev):
     try:
         msg_list = []
         image, _, _ = await utils.get_image_and_msg(bot, ev)
-        ix=image.size[0] # 获取图片宽度
-        iy=image.size[1] # 获取图片高度
-        thumbSize = (1024, 1024)
         if not image:
             await bot.send(ev, '请输入需要超分的图片', at_sender=True)
             return
-        if ix * iy > 1000000: # 图片像素大于100w将对其进行缩放
-            image.thumbnail(thumbSize, resample=Image.ANTIALIAS) # 图片等比例缩放
-            await bot.send(ev, "图片尺寸超过100万像素，将对其进行缩放", at_sender=True)
+        ix=image.size[0] # 获取图片宽度
+        iy=image.size[1] # 获取图片高度
+        if ix * iy > 1500000: # 图片像素大于150万像素的，会对其进行缩放
+            image.thumbnail(size=(1300, 1300)) # 图片等比例缩放
+            await bot.send(ev, f"图片尺寸超过150万像素，将对其进行缩放", at_sender=True)
         await bot.send(ev, f"正在使用Real-ESRGAN模型4倍超分图片，请稍后...")
 
         img_msg = await utils.get_Real_ESRGAN(image)
         if img_msg:
-            msg_list.append("使用Real-ESRGAN模型4倍超分图片结果")
-            msg_list.append(MessageSegment.image(img_msg))
+            msg_list.append("放大倍率：4倍\n使用模型：Real-ESRGAN")
+            msg_list.append(img_msg)
             await SendMessageProcess(bot, ev, msg_list) # 发送消息过程
         else:
             await bot.send(ev, '清晰术失败，服务器未返回图片数据', at_sender=True)
             traceback.print_exc()
     except Exception as e:
-        await bot.send(ev, f"清晰术失败,{e}", at_sender=True)
+        await bot.send(ev, f"清晰术失败：{e}", at_sender=True)
         traceback.print_exc()
 
 @sv.scheduled_job('cron', hour='2', minute='36')
