@@ -31,7 +31,7 @@ sv_help = '''
 [图片鉴赏/生成tag+图片] 根据上传的图片生成tags
 [回复消息+以图绘图/上传图片/图片鉴赏/清晰术/二次元化] 回复消息使用上述功能
 [元素法典 xxx] xxx可以是多种魔咒,空格分离
-[元素法典咏唱 xxx] 发动黑暗法典，多种魔咒用空格分离
+[元素法典咏唱/吟唱 xxx] 发动黑暗法典，多种魔咒用空格分离
 
 【元素法典目录】
 ['水魔法', '空间法', '冰魔法', '核爆法', '风魔法', '流沙法', '白骨法', '星空法', '机凯种', 
@@ -690,7 +690,7 @@ async def magic_book(bot, ev):
         gid = ev['group_id']
         msg_list = []
         msg = ev.message.extract_plain_text().strip()
-        tags, error_msg, node_msg = await magic.get_magic_book_(msg)
+        tags, error_msg, node_msg, dark_msg = await magic.get_magic_book_(msg)
         if len(error_msg):
             await bot.send(ev, f"已报错：{error_msg}", at_sender=True)
             return
@@ -700,7 +700,10 @@ async def magic_book(bot, ev):
         if result != 0:
             await bot.send(ev, msg)
             return
-        await bot.send(ev, f"元素法典已注入，正在进行魔法绘图，请稍后...\n(今日剩余{get_config('base', 'daily_max') - tlmt.get_num(uid)}次)", at_sender=True)
+        if dark_msg:
+            await bot.send(ev, f"{dark_msg}正在进行魔法绘图，请稍后...\n(今日剩余{get_config('base', 'daily_max') - tlmt.get_num(uid)}次)", at_sender=True)
+        else:
+            await bot.send(ev, f"元素法典已注入，正在进行魔法绘图，请稍后...\n(今日剩余{get_config('base', 'daily_max') - tlmt.get_num(uid)}次)", at_sender=True)
 
         result_msg,error_msg = await utils.get_imgdata_magic(tags)
         if len(error_msg):

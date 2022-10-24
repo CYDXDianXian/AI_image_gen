@@ -25,17 +25,18 @@ magic_data_dark_title = [i for i in magic_data_dark] # 初始化黑暗法典目�
 
 async def get_magic_book_(msg):
     error_msg = ""
-    error_msg,magic_msg_tag,magic_msg_ntag,magic_msg_scale = await mix_magic_(msg) #获取魔法书
+    error_msg,magic_msg_tag,magic_msg_ntag,magic_msg_scale,dark_msg = await mix_magic_(msg) #获取魔法书
     if error_msg != "":
         return None,error_msg,None
     result_msg = magic_msg_tag +"&ntags="+ magic_msg_ntag +"&shape=Landscape"+"&scale=" + magic_msg_scale
     node_msg = f'正面tags:{magic_msg_tag}\n负面tags:{magic_msg_ntag}\nscale:{magic_msg_scale}'
-    return result_msg,error_msg,node_msg
+    return result_msg,error_msg,node_msg,dark_msg
 
 async def mix_magic_(msg):
     error_msg = ""
     magic_msg = ""
     magic_msg_pure = ""
+    dark_msg = ""
     magic_id_list = re.split('\\s+',msg)
     for i in magic_id_list:
         if i in magic_data_title:
@@ -60,9 +61,10 @@ async def mix_magic_(msg):
     while "" in magic_list:
         magic_list.remove("")
     magic_msg_tag = ",".join(magic_list)
-    if "咏唱" in msg:
+    if "咏唱" in msg or "吟唱" in msg:
         dark = random.choice(magic_data_dark_title)
+        dark_msg = "Warning！黑暗法典已注入！"
         magic_msg_tag += f'{magic_data_dark[dark]["tags"]},'
         magic_msg_ntag = magic_data_dark[dark]["ntags"]
-    return error_msg,magic_msg_tag,magic_msg_ntag,magic_msg_scale
+    return error_msg,magic_msg_tag,magic_msg_ntag,magic_msg_scale,dark_msg
     # 融合魔法以最后融合的魔法作为基准!!!
