@@ -337,15 +337,12 @@ async def generate_tags(bot, ev):
         return
     await bot.send(ev, f"正在生成tags，请稍后...")
     json_tags = await utils.get_tags(image)
-
     if json_tags:
-        msg = "图片鉴赏结果为如下"
-        msg_list.append(msg)
-        msg = ','.join([f'{t["label"]}' for t in json_tags])
-        msg_list.append(msg)
+        msg_list.append("图片鉴赏结果为如下")
+        msg_list.append(json_tags)
         await SendMessageProcess(bot, ev, msg_list, withdraw=False) # 发送消息过程
     else:
-        await bot.send(ev, '生成失败，肯定不是bot的错！', at_sender=True)
+        await bot.send(ev, "鉴赏失败，服务器未返回图片数据", at_sender=True)
         traceback.print_exc()
 
 @sv.on_keyword(('二次元化', '动漫化'))
@@ -620,26 +617,30 @@ async def img_Real_CUGAN(bot, ev):
         traceback.print_exc()
 
 async def img_Real_ESRGAN(bot, ev):
-    msg_list = []
-    image, _, _ = await utils.get_image_and_msg(bot, ev)
-    ix=image.size[0] # 获取图片宽度
-    iy=image.size[1] # 获取图片高度
-    thumbSize = (1024, 1024)
-    if not image:
-        await bot.send(ev, '请输入需要超分的图片', at_sender=True)
-        return
-    if ix * iy > 1000000: # 图片像素大于100w将对其进行缩放
-        image.thumbnail(thumbSize, resample=Image.ANTIALIAS) # 图片等比例缩放
-        await bot.send(ev, "图片尺寸超过100万像素，将对其进行缩放", at_sender=True)
-    await bot.send(ev, f"正在使用Real-ESRGAN模型4倍超分图片，请稍后...")
+    try:
+        msg_list = []
+        image, _, _ = await utils.get_image_and_msg(bot, ev)
+        ix=image.size[0] # 获取图片宽度
+        iy=image.size[1] # 获取图片高度
+        thumbSize = (1024, 1024)
+        if not image:
+            await bot.send(ev, '请输入需要超分的图片', at_sender=True)
+            return
+        if ix * iy > 1000000: # 图片像素大于100w将对其进行缩放
+            image.thumbnail(thumbSize, resample=Image.ANTIALIAS) # 图片等比例缩放
+            await bot.send(ev, "图片尺寸超过100万像素，将对其进行缩放", at_sender=True)
+        await bot.send(ev, f"正在使用Real-ESRGAN模型4倍超分图片，请稍后...")
 
-    img_msg = await utils.get_Real_ESRGAN(image)
-    if img_msg:
-        msg_list.append("使用Real-ESRGAN模型4倍超分图片结果")
-        msg_list.append(MessageSegment.image(img_msg))
-        await SendMessageProcess(bot, ev, msg_list) # 发送消息过程
-    else:
-        await bot.send(ev, '生成失败，肯定不是bot的错！', at_sender=True)
+        img_msg = await utils.get_Real_ESRGAN(image)
+        if img_msg:
+            msg_list.append("使用Real-ESRGAN模型4倍超分图片结果")
+            msg_list.append(MessageSegment.image(img_msg))
+            await SendMessageProcess(bot, ev, msg_list) # 发送消息过程
+        else:
+            await bot.send(ev, '清晰术失败，服务器未返回图片数据', at_sender=True)
+            traceback.print_exc()
+    except Exception as e:
+        await bot.send(ev, f"清晰术失败,{e}", at_sender=True)
         traceback.print_exc()
 
 @sv.scheduled_job('cron', hour='2', minute='36')

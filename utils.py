@@ -304,17 +304,17 @@ async def get_Real_ESRGAN(img):
     else:
         return None
 
-async def fetch_data(url_status, _hash, max_retry_num=15):
+async def fetch_data(url_status, _hash, max_retry_num=30):
     retrying = 0
     while True:
         if retrying >= max_retry_num:
             return None
 
         resj = await (await aiorequests.post(url_status, json={'hash': _hash})).json()
+        await asyncio.sleep(1) # 等待1秒
         if resj['status'] == 'PENDING' or resj['status'] == 'QUEUED':
             retrying += 1
             hoshino.logger.info(f'服务器未返回数据，正在进行第{retrying}次重试！')
-            await asyncio.sleep(1)
             continue
         elif resj['status'] == 'COMPLETE':
             result_data = resj['data']['data'][0]
@@ -352,7 +352,7 @@ async def cartoonization(image):
     return resj
 
 async def get_tags(image):
-    url_push = 'https://hf.space/embed/hysts/DeepDanbooru/api/queue/push/'
+    url_push = "https://hf.space/embed/hysts/DeepDanbooru/api/queue/push/"
 
     params = {
         "fn_index": 0,
@@ -363,7 +363,7 @@ async def get_tags(image):
 
     imageData = BytesIO()
     image.save(imageData, format='JPEG', quality=90)
-    params['data'] = ['data:image/jpeg;base64,' + str(b64encode(imageData.getvalue()))[2:-1], 0.5]  # 0.5的阈值
+    params["data"] = ["data:image/jpeg;base64," + str(b64encode(imageData.getvalue()))[2:-1], 0.5]  # 0.5的阈值
     _hash = (await (await aiorequests.post(url_push, json=params)).json())['hash']
     resj = await fetch_data('https://hf.space/embed/hysts/DeepDanbooru/api/queue/status/', _hash)
     return resj
