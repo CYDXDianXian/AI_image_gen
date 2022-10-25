@@ -15,7 +15,7 @@ sv_help = '''
 【主要功能】
 [ai绘图/生成涩图+tag] 关键词仅支持英文，用逗号隔开
 [以图绘图/以图生图+tag+图片] 注意图片尽量长宽都在765像素以下，不然会被狠狠地压缩
-[清晰术/图片超分+图片] 图片超分(默认2倍放大3倍降噪)
+[清晰术/图片超分+图片] 图片超分(默认2倍放大3级降噪)
 [清晰术+2倍/3倍/4倍放大+不/保守/强力降噪] 图片放大倍率与降噪倍率选项
 [二次元化/动漫化+图片] 照片二次元化
 [上传pic/上传图片] 务必携带seed/scale/tags等参数
@@ -30,7 +30,7 @@ sv_help = '''
 [本群/个人XP缝合] 缝合tags进行绘图
 [图片鉴赏/生成tag+图片] 根据上传的图片生成tags
 [回复消息+以图绘图/上传图片/图片鉴赏/清晰术/二次元化] 回复消息使用上述功能
-[元素法典 xxx] xxx可以是多种魔咒,空格分离
+[元素法典 xxx] xxx可以是多种魔咒，空格分离
 [元素法典咏唱/吟唱 xxx] 发动黑暗法典，多种魔咒用空格分离
 
 【元素法典目录】
@@ -630,15 +630,15 @@ async def img_Real_CUGAN(bot, ev):
             if "保守降噪" in msg:
                 con = "conservative"
                 con_cn = "保守"
-            elif "强力降噪" in msg or "三倍降噪" in msg or "3倍降噪" in msg:
+            elif "强力降噪" in msg or "三级降噪" in msg or "3级降噪" in msg:
                 con = "denoise3x"
-                con_cn = "3倍"
+                con_cn = "3级"
             elif "不降噪" in msg:
                 con = "no-denoise"
                 con_cn = "不降噪"
             else:
                 con = "denoise3x" # 如不指定降噪等级，默认3倍降噪
-                con_cn = "3倍"
+                con_cn = "3级"
             modelname = f"up{scale}x-latest-{con}.pth"
             await bot.send(ev, f"放大倍率：{scale}倍    降噪等级：{con_cn}\n正在进行图片超分，请稍后...")
         except Exception as e:
