@@ -7,13 +7,13 @@ from io import BytesIO
 import re
 import time
 import traceback
+import uuid
 from PIL import Image, ImageFont, ImageDraw
 from hoshino import R, aiorequests
 from . import db
 from hoshino.typing import Message
 from .config import get_config
 from base64 import b64decode, b64encode
-from . import easygradio
 
 save_image_path = Path(R.img('AI_setu').path) # 图片保存在res/img/AI_setu目录下
 Path(save_image_path).mkdir(parents = True, exist_ok = True) # 创建路径
@@ -212,6 +212,26 @@ async def get_xp_pic_(msg,gid,uid):
         error_msg = f'暂无{msg}的XP信息'
     return resultmes,error_msg
 
+async def predict_push(url,json_data,max_try=60):
+    '''
+    predict请求，适用绝大多数gradio框架
+    一般情况下推荐适用该方式请求数据
+    '''
+    resj = ""
+    error_msg = ""
+    params = {
+        "fn_index": 0,
+        "data": json_data
+    }
+    try:
+        resj = await (await aiorequests.post(url, json=params,timeout = max_try)).json()
+        # data_path = Path(__file__).parent / "test" / "二次元化数据.json"
+        # json_save = json.dumps(resj, indent=4, ensure_ascii=False) # 保存格式化的json字符串
+        # data_path.write_text(json_save, encoding="utf-8")
+    except Exception as e:
+        error_msg = f"尝试推理 失败原因:{type(e)}"
+    return resj, error_msg
+
 async def get_Real_CUGAN(image, modelname):
     '''
     Real-CUGAN图片超分
@@ -225,15 +245,14 @@ async def get_Real_CUGAN(image, modelname):
         str: 返回的json格式数据
     '''
     error_msg = ""
-    result_msg = ""
     url = get_config("image4x", "Real-CUGAN-api") # 获取api地址
     b_io = BytesIO()
     image.save(b_io, format='JPEG', quality=90)
     json_data = ["data:image/jpeg;base64," + base64.b64encode(b_io.getvalue()).decode(), modelname, 2]
-    result_msg, error_msg = await easygradio.predict_push(url, json_data)
+    resj, error_msg = await predict_push(url, json_data)
     if error_msg:
         return None,error_msg
-    result_img = b64decode(result_msg.split("base64,")[1]) # 获取base64并解码为图片
+    result_img = b64decode(resj["data"][0].split("base64,")[1]) # 获取base64并解码为图片
     result_img = Image.open(BytesIO(result_img)).convert("RGB") # 载入图片并转换色彩空间为RGB
     result_img = pic2cq(pic2b64(result_img)) # 图片转base64并转cq码
     return result_img, error_msg
@@ -243,57 +262,58 @@ async def get_Real_ESRGAN(img):
     Real-ESRGAN图片超分
     '''
     error_msg = ""
-    result_msg = ""
     url = get_config("image4x", "Real-ESRGAN-api") # 获取api地址
     b_io = BytesIO()
     img.save(b_io, format='JPEG', quality=90)
     json_data = ["data:image/jpeg;base64," + base64.b64encode(b_io.getvalue()).decode(), "anime"]
-    result_msg, error_msg = await easygradio.predict_push(url, json_data)
+    resj, error_msg = await predict_push(url, json_data)
     if error_msg:
         return None,error_msg
-    result_img = b64decode(result_msg.split("base64,")[1]) # 获取base64并解码为图片
+    result_img = b64decode(resj["data"][0].split("base64,")[1]) # 获取base64并解码为图片
     result_img = Image.open(BytesIO(result_img)).convert("RGB") # 载入图片并转换色彩空间为RGB
     result_img = pic2cq(pic2b64(result_img)) # 图片转base64并转cq码
     return result_img, error_msg
 
 
-async def cartoonization(image: Image, max_try=60):
+async def cartoonization(image: Image):
     '''
     图片卡通化
     '''
     error_msg = ""
-    result_msg = ""
     url = get_config('pic_tools', 'img2anime_api')
     b_io = BytesIO()
     image.save(b_io, format='JPEG', quality=90)
     json_data = ["data:image/jpeg;base64," + base64.b64encode(b_io.getvalue()).decode()]
-    result_msg, error_msg = await easygradio.quene_push_(url, json_data) #获取结果 resj['data']['data']
+    resj, error_msg = await predict_push(url, json_data)
     if error_msg:
         return None,error_msg
-    result_img = b64decode(result_msg[0].split("base64,")[1]) # 截取列表中的第2项到结尾获取base64并解码为图片
+    result_img = b64decode(resj["data"][0].split("base64,")[1]) # 截取列表中的第2项到结尾获取base64并解码为图片
     result_img = Image.open(BytesIO(result_img)).convert("RGB") # 载入图片并转换色彩空间为RGB
     result_img = pic2cq(pic2b64(result_img)) # 图片转base64并转cq码
     return result_img, error_msg
     
 
-async def get_tags(image: Image, max_try=60):
+async def get_tags(image: Image):
     '''
     DeepDanbooru图片鉴赏
     分析图片并获取对应tags
     置信度取70%以上
     '''
-    result_msg = ""
     error_msg = ""
     url = get_config('pic_tools', 'img2tag_api')
     b_io = BytesIO()
     image.save(b_io, format='JPEG', quality=90)
-    json_data = ["data:image/jpeg;base64," + base64.b64encode(b_io.getvalue()).decode(),0.7] # 阈值0.7，即取置信度70%以上的tag
-    result_msg, error_msg = await easygradio.quene_push_(url, json_data) #获取结果 resj['data']['data']
+    json_data = ["data:image/jpeg;base64," + base64.b64encode(b_io.getvalue()).decode(),0.6] # 阈值0.6，即取置信度60%以上的tag
+    resj, error_msg = await predict_push(url, json_data)
     if error_msg:
         return None,error_msg
-    return result_msg[1], error_msg
+    result_msg = ', '.join([i['label'] for i in resj['data'][0]['confidences']])
+    return result_msg, error_msg
 
 async def get_imgdata_magic(tags):#way=1时为get，way=0时为post
+    '''
+    元素法典绘图模块
+    '''
     error_msg =""  #报错信息
     result_msg = ""
 

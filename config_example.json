@@ -34,13 +34,13 @@
     },
     "image4x": {
         "Real-CUGAN": true,
-        "Real-CUGAN-api": "http://134.175.32.157:9999",
+        "Real-CUGAN-api": "http://134.175.32.157:9999/api/predict",
         "Real-ESRGAN": false,
-        "Real-ESRGAN-api": "https://hf.space/embed/akhaliq/Real-ESRGAN"
+        "Real-ESRGAN-api": "https://akhaliq-real-esrgan.hf.space/api/predict/"
     },
     "pic_tools": {
-        "img2tag_api": "https://hf.space/embed/NoCrypt/DeepDanbooru_string",
-        "img2anime_api": "https://hf.space/embed/hylee/White-box-Cartoonization"
+        "img2tag_api": "https://hysts-deepdanbooru.hf.space/api/predict",
+        "img2anime_api": "https://hylee-white-box-cartoonization.hf.space/api/predict/"
     },
     "default_tags": {
         "tags": "miku"

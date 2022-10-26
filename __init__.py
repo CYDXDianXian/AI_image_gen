@@ -545,14 +545,6 @@ async def get_img_peifang(bot, ev: CQEvent):
 
 @sv.on_keyword(('图片鉴赏', '鉴赏图片', '生成tag', '生成tags'))
 async def generate_tags(bot, ev):
-    # uid = ev['user_id']
-    # gid = ev['group_id']
-    #
-    # num = 1
-    # result, msg = check_lmt(uid, num, gid)  # 检查群权限与个人次数
-    # if result != 0:
-    #     await bot.send(ev, msg)
-    #     return
     try:
         msg_list = []
         image, _, _ = await utils.get_image_and_msg(bot, ev)
@@ -562,8 +554,8 @@ async def generate_tags(bot, ev):
         await bot.send(ev, f"正在生成tags，请稍后...")
         ix=image.size[0] # 获取图片宽度
         iy=image.size[1] # 获取图片高度
-        if ix * iy > 490000: # 图片像素大于25万像素的，会对其进行缩放
-            image.thumbnail(size=(700, 700)) # 图片等比例缩放
+        if ix * iy > 1000000: # 图片像素大于100万像素的，会对其进行缩放
+            image.thumbnail(size=(1000, 1000)) # 图片等比例缩放
         result_msg,error_msg = await utils.get_tags(image)
         if error_msg:
             await bot.send(ev, f"鉴赏失败：{error_msg}", at_sender=True)
@@ -587,7 +579,7 @@ async def animize(bot, ev):
         await bot.send(ev, f"正在进入二次元，请稍后...")
         ix=image.size[0] # 获取图片宽度
         iy=image.size[1] # 获取图片高度
-        if ix * iy > 490000: # 图片像素大于25万像素的，会对其进行缩放
+        if ix * iy > 490000: # 图片像素大于49万像素的，会对其进行缩放
             image.thumbnail(size=(700, 700)) # 图片等比例缩放
         img_msg, error_msg= await utils.cartoonization(image)
         if error_msg:

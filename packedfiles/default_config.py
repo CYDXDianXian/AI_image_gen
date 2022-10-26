@@ -35,13 +35,13 @@ config_default = {
     },
     "image4x": {
         "Real-CUGAN": True, # Real-CUGAN超分模型开关，可支持2、3、4倍超分，更锐利的线条，更好的纹理保留，虚化区域保留
-        "Real-CUGAN-api": "http://134.175.32.157:9999", # Real-CUGAN的api地址。目前接入的是奥帝努斯大佬的GPU服务器，速度更快！默认格式：https://hf.space/embed/{ID}/{仓库名}
+        "Real-CUGAN-api": "http://134.175.32.157:9999/api/predict", # Real-CUGAN的api地址。目前接入的是奥帝努斯大佬的GPU服务器，速度更快！
         "Real-ESRGAN": False, # 目前存在bug（图片尺寸过大生成的图会很小），故暂时不建议开启
-        "Real-ESRGAN-api": "https://hf.space/embed/akhaliq/Real-ESRGAN" # Real-ESRGAN的api地址，默认格式：https://hf.space/embed/{ID}/{仓库名}
+        "Real-ESRGAN-api": "https://akhaliq-real-esrgan.hf.space/api/predict/" # Real-ESRGAN的api地址
     },
     "pic_tools":{
-        "img2tag_api": "https://hf.space/embed/NoCrypt/DeepDanbooru_string", # 有排队功能的DeepDanbooru仓库，默认格式：https://hf.space/embed/{ID}/{仓库名}
-        "img2anime_api": "https://hf.space/embed/hylee/White-box-Cartoonization" # 有排队功能的White-box-Cartoonization仓库，默认格式：https://hf.space/embed/{ID}/{仓库名}
+        "img2tag_api": "https://hysts-deepdanbooru.hf.space/api/predict", # DeepDanbooru的api地址
+        "img2anime_api": "https://hylee-white-box-cartoonization.hf.space/api/predict/" # White-box-Cartoonization的api地址
     },
     "default_tags": {
         "tags": "miku"  # 如果没有指定tag的话，默认的tag
