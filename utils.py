@@ -12,7 +12,7 @@ import uuid
 from PIL import Image, ImageFont, ImageDraw
 from hoshino import R, aiorequests
 from . import db
-from hoshino.typing import Message, MessageSegment
+from hoshino.typing import Message
 from .config import get_config
 from base64 import b64decode, b64encode
 
@@ -31,6 +31,13 @@ def pic2b64(pic: Image) -> str:
     base64_str = base64.b64encode(buf.getvalue()).decode()
     return 'base64://' + base64_str
 
+def image_to_cq(image: str):
+    """
+    图片转CQ码
+    image: base64编码的图片
+    """
+    return f"[CQ:image,file={image}]"
+
 def text_to_image(text: str) -> Image.Image:
     font = ImageFont.truetype(str(fontpath), 24) # Path是路径对象，必须转为str之后ImageFont才能读取
     padding = 10
@@ -47,7 +54,7 @@ def text_to_image(text: str) -> Image.Image:
     for j in range(len(text_list)):
         text = text_list[j]
         draw.text((padding, padding + j * (margin + h)), text, font=font, fill=(0, 0, 0))
-    return MessageSegment.image(pic2b64(i)) # 图片转base64并转cq码
+    return image_to_cq(pic2b64(i)) # 图片转base64并转cq码
 
 
 def key_worlds_removal(msg):
@@ -163,7 +170,7 @@ async def get_imgdata(tags,way=1,shape="Portrait",strength=get_config('NovelAI',
     except Exception as e:
         error_msg += f"处理图像失败：{type(e)}"
         return resultmes,error_msg
-    resultmes = f"{MessageSegment.image(imgmes)}{msg}\ntags:{tags}" # MessageSegment.image(imgmes)将图片转为CQ码
+    resultmes = f"{image_to_cq(imgmes)}{msg}\ntags:{tags}" # image_to_cq(imgmes)将图片转为CQ码
     return resultmes,error_msg
 
 async def get_xp_list_(msg,gid,uid):
@@ -232,7 +239,7 @@ async def get_Real_CUGAN(image, modelname):
     if "data" in res:
         result_img = b64decode(''.join(res['data'][0].split(',')[1:])) # 截取列表中的第2项到结尾获取base64并解码为图片
         result_img = Image.open(BytesIO(result_img)).convert("RGB") # 载入图片并转换色彩空间为RGB
-        return MessageSegment.image(pic2b64(result_img)) # 图片转base64并转cq码
+        return image_to_cq(pic2b64(result_img)) # 图片转base64并转cq码
     else:
         return None
 
@@ -256,7 +263,7 @@ async def get_Real_ESRGAN(img):
     if 'data' in res:
         result_img = b64decode(''.join(res['data'][0].split(',')[1:])) # 截取列表中的第2项到结尾获取base64并解码为图片
         result_img = Image.open(BytesIO(result_img)).convert("RGB") # 载入图片并转换色彩空间为RGB
-        return MessageSegment.image(pic2b64(result_img)) # 图片转base64并转cq码
+        return image_to_cq(pic2b64(result_img)) # 图片转base64并转cq码
     else:
         return None
 
@@ -313,7 +320,7 @@ async def cartoonization(image: Image, max_try=60):
     result_msg = result_msg[0]
     result_img = base64.b64decode(''.join(result_msg.split(',')[1:])) # 截取列表中的第2项到结尾获取base64并解码为图片
     result_img = Image.open(BytesIO(result_img)).convert("RGB") # 载入图片并转换色彩空间为RGB
-    result_msg = MessageSegment.image(pic2b64(result_img)) # 图片转base64并转cq码
+    result_msg = image_to_cq(pic2b64(result_img)) # 图片转base64并转cq码
     return result_msg,error_msg
     
 
@@ -359,7 +366,7 @@ async def get_imgdata_magic(tags):#way=1时为get，way=0时为post
     except Exception as e:
         error_msg = f"请求超时：{type(e)}"
     img = Image.open(BytesIO(imgdata)).convert("RGB")
-    result_msg = MessageSegment.image(pic2b64(img)) # 图片转base64并转cq码
+    result_msg = image_to_cq(pic2b64(img)) # 图片转base64并转cq码
     return result_msg,error_msg
 
 async def img_make(msglist,page = 1):
@@ -390,5 +397,5 @@ async def img_make(msglist,page = 1):
         draw.text((80*column+384*(column-1)+int(region.width/2)-90,80+100*(row-1)+384*(row-1)+region.height),id,font=font,fill = (0, 0, 0))
         draw.text((80*column+384*(column-1)+int(region.width/2)+20,80+100*(row-1)+384*(row-1)+region.height),thumb,font=font,fill = (0, 0, 0))
     imgmes = pic2b64(target) # 将图片转为base64
-    resultmes = MessageSegment.image(imgmes) # 将图片转为CQ码
+    resultmes = image_to_cq(imgmes) # 将图片转为CQ码
     return resultmes
