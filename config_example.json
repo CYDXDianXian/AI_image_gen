@@ -16,7 +16,7 @@
         "limit_word": true
     },
     "NovelAI": {
-        "api": "",
+        "api": "http://91.217.139.190:5010",
         "token": "",
         "strength": "0.60"
     },
@@ -34,9 +34,13 @@
     },
     "image4x": {
         "Real-CUGAN": true,
-        "Real-CUGAN-api": "http://134.175.32.157:9999/api/predict",
+        "Real-CUGAN-api": "http://134.175.32.157:9999",
         "Real-ESRGAN": false,
-        "Real-ESRGAN-api": "https://hf.space/embed/akhaliq/Real-ESRGAN/+/api/predict/"
+        "Real-ESRGAN-api": "https://hf.space/embed/akhaliq/Real-ESRGAN"
+    },
+    "pic_tools": {
+        "img2tag_api": "https://hf.space/embed/NoCrypt/DeepDanbooru_string",
+        "img2anime_api": "https://hf.space/embed/hylee/White-box-Cartoonization"
     },
     "default_tags": {
         "tags": "miku"

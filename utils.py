@@ -1,4 +1,3 @@
-import asyncio
 import base64
 import calendar
 import json
@@ -8,13 +7,13 @@ from io import BytesIO
 import re
 import time
 import traceback
-import uuid
 from PIL import Image, ImageFont, ImageDraw
 from hoshino import R, aiorequests
 from . import db
 from hoshino.typing import Message
 from .config import get_config
 from base64 import b64decode, b64encode
+from . import easygradio
 
 save_image_path = Path(R.img('AI_setu').path) # 图片保存在res/img/AI_setu目录下
 Path(save_image_path).mkdir(parents = True, exist_ok = True) # 创建路径
@@ -31,12 +30,12 @@ def pic2b64(pic: Image) -> str:
     base64_str = base64.b64encode(buf.getvalue()).decode()
     return 'base64://' + base64_str
 
-def image_to_cq(image: str):
+def pic2cq(pic: str):
     """
     图片转CQ码
-    image: base64编码的图片
+    pic: base64编码的图片
     """
-    return f"[CQ:image,file={image}]"
+    return f"[CQ:image,file={pic}]"
 
 def text_to_image(text: str) -> Image.Image:
     font = ImageFont.truetype(str(fontpath), 24) # Path是路径对象，必须转为str之后ImageFont才能读取
@@ -54,7 +53,7 @@ def text_to_image(text: str) -> Image.Image:
     for j in range(len(text_list)):
         text = text_list[j]
         draw.text((padding, padding + j * (margin + h)), text, font=font, fill=(0, 0, 0))
-    return image_to_cq(pic2b64(i)) # 图片转base64并转cq码
+    return pic2cq(pic2b64(i)) # 图片转base64并转cq码
 
 
 def key_worlds_removal(msg):
@@ -146,31 +145,32 @@ async def get_imgdata(tags,way=1,shape="Portrait",strength=get_config('NovelAI',
     token = get_config('NovelAI', 'token')
     try:
         if way:
-            url = (f"{api_url}got_image") + (f"?tags={tags}")+ (f"&token={token}")
+            url = (f"{api_url}/got_image") + (f"?tags={tags}")+ (f"&token={token}")
             response = await aiorequests.get(url, timeout=180)
         else:
-            url = (f"{api_url}got_image2image") + (f"?tags={tags}") +(f"&shape={shape}")+(f"&strength={strength}")+(f"&token={token}")
+            url = (f"{api_url}/got_image2image") + (f"?tags={tags}") +(f"&shape={shape}")+(f"&strength={strength}")+(f"&token={token}")
             response = await aiorequests.post(url,data=b64encode(b_io.getvalue()), timeout=180) # 上传图片
         imgdata = await response.content # 获取图片的二进制数据
         if len(imgdata) < 5000:
             error_msg = "token冷却中~"
     except Exception as e:
-        error_msg = f"请求超时：{type(e)}"
+        resultmes = f"请求超时：{type(e)}"
+        return resultmes, error_msg
     try:
         msg=""
         msgdata = json.loads(re.findall(r'{"steps".+?}',str(imgdata))[0]) # 使用r''来声明原始字符串，避免转义
         msg = f'\nseed:{msgdata["seed"]}   scale:{msgdata["scale"]}'
     except Exception as e:
         traceback.print_exc()
-        error_msg = f"获取图片信息失败，服务器未返回数据"
-        return resultmes,error_msg
+        error_msg = f"获取图片信息失败，服务器未返回数据：{type(e)}"
+        return resultmes, error_msg
     try:
         img = Image.open(BytesIO(imgdata)).convert("RGB") # 载入图片并转换色彩空间为RGB
         imgmes = pic2b64(img) # 将图片转为base64
     except Exception as e:
         error_msg += f"处理图像失败：{type(e)}"
         return resultmes,error_msg
-    resultmes = f"{image_to_cq(imgmes)}{msg}\ntags:{tags}" # image_to_cq(imgmes)将图片转为CQ码
+    resultmes = f"{pic2cq(imgmes)}{msg}\ntags:{tags}" # pic2cq(imgmes)将图片转为CQ码
     return resultmes,error_msg
 
 async def get_xp_list_(msg,gid,uid):
@@ -224,70 +224,37 @@ async def get_Real_CUGAN(image, modelname):
     Returns:
         str: 返回的json格式数据
     '''
-    api = get_config("image4x", "Real-CUGAN-api") # 获取api地址
+    error_msg = ""
+    result_msg = ""
+    url = get_config("image4x", "Real-CUGAN-api") # 获取api地址
     b_io = BytesIO()
     image.save(b_io, format='JPEG', quality=90)
-    i_b64 = "data:image/jpeg;base64," + base64.b64encode(b_io.getvalue()).decode()
-    params = {
-        "data": [
-            i_b64,
-            modelname,
-            2
-            ]
-        }
-    res = await (await aiorequests.post(url=api, json=params)).json()
-    if "data" in res:
-        result_img = b64decode(''.join(res['data'][0].split(',')[1:])) # 截取列表中的第2项到结尾获取base64并解码为图片
-        result_img = Image.open(BytesIO(result_img)).convert("RGB") # 载入图片并转换色彩空间为RGB
-        return image_to_cq(pic2b64(result_img)) # 图片转base64并转cq码
-    else:
-        return None
+    json_data = ["data:image/jpeg;base64," + base64.b64encode(b_io.getvalue()).decode(), modelname, 2]
+    result_msg, error_msg = await easygradio.predict_push(url, json_data)
+    if error_msg:
+        return None,error_msg
+    result_img = b64decode(result_msg.split("base64,")[1]) # 获取base64并解码为图片
+    result_img = Image.open(BytesIO(result_img)).convert("RGB") # 载入图片并转换色彩空间为RGB
+    result_img = pic2cq(pic2b64(result_img)) # 图片转base64并转cq码
+    return result_img, error_msg
 
 async def get_Real_ESRGAN(img):
     '''
     Real-ESRGAN图片超分
     '''
-    url_predict = get_config("image4x", "Real-ESRGAN-api") # 获取api地址
+    error_msg = ""
+    result_msg = ""
+    url = get_config("image4x", "Real-ESRGAN-api") # 获取api地址
     b_io = BytesIO()
     img.save(b_io, format='JPEG', quality=90)
-    i_b64 = "data:image/jpeg;base64," + str(b64encode(b_io.getvalue()))[2:-1]
-    params = {
-        "fn_index": 0,
-        "data": [
-            i_b64,
-            "anime"
-        ],
-        "session_hash": str(uuid.uuid1())
-    }
-    res = await (await aiorequests.post(url_predict, json=params)).json()
-    if 'data' in res:
-        result_img = b64decode(''.join(res['data'][0].split(',')[1:])) # 截取列表中的第2项到结尾获取base64并解码为图片
-        result_img = Image.open(BytesIO(result_img)).convert("RGB") # 载入图片并转换色彩空间为RGB
-        return image_to_cq(pic2b64(result_img)) # 图片转base64并转cq码
-    else:
-        return None
-
-
-async def quene_fetch_(url,_hash,max_try):
-    result_msg = ""
-    error_msg = "" #报错信息
-    i = 0
-    url_status = f'{url}/api/queue/status/'
-    while i< max_try :
-        i+=1
-        resj =  await (await aiorequests.post(url_status, json={'hash': _hash})).json()
-        await asyncio.sleep(1)#等待1秒
-        if resj['status'] == 'PENDING' or resj['status'] == 'QUEUED':
-            error_msg = f"状态码:{resj['status']} 原因:超时了捏~"
-            continue
-        elif resj['status'] == 'COMPLETE':
-            error_msg = ""
-            #print(resj['data']['data'])
-            result_msg = resj['data']['data'] #获取结果 resj['data']['data']
-            return result_msg,error_msg
-        else:
-            error_msg = f"状态码:{resj['status']} 失败原因:{resj['data']}"
-            return result_msg,error_msg
+    json_data = ["data:image/jpeg;base64," + base64.b64encode(b_io.getvalue()).decode(), "anime"]
+    result_msg, error_msg = await easygradio.predict_push(url, json_data)
+    if error_msg:
+        return None,error_msg
+    result_img = b64decode(result_msg.split("base64,")[1]) # 获取base64并解码为图片
+    result_img = Image.open(BytesIO(result_img)).convert("RGB") # 载入图片并转换色彩空间为RGB
+    result_img = pic2cq(pic2b64(result_img)) # 图片转base64并转cq码
+    return result_img, error_msg
 
 
 async def cartoonization(image: Image, max_try=60):
@@ -296,32 +263,17 @@ async def cartoonization(image: Image, max_try=60):
     '''
     error_msg = ""
     result_msg = ""
-    url = "https://hf.space/embed/hylee/White-box-Cartoonization"
+    url = get_config('pic_tools', 'img2anime_api')
     b_io = BytesIO()
     image.save(b_io, format='JPEG', quality=90)
-    if error_msg != "":
-        return result_msg,error_msg
     json_data = ["data:image/jpeg;base64," + base64.b64encode(b_io.getvalue()).decode()]
-    url_push = f'{url}/api/queue/push/'
-    json = {
-        "fn_index": 0,
-        "data": json_data,
-        "session_hash": str(uuid.uuid1()),
-        "action": "predict"
-    }
-    try:
-        _hash = (await(await aiorequests.post(url_push, json=json)).json())['hash'] #获取当前任务的hash
-    except Exception as e:
-        error_msg = f"尝试排队 失败原因:{type(e)}"
-        return result_msg,error_msg
-    result_msg,error_msg = await quene_fetch_(url,_hash,max_try) #获取结果 resj['data']['data'][0]
-    if error_msg != "":
+    result_msg, error_msg = await easygradio.quene_push_(url, json_data) #获取结果 resj['data']['data']
+    if error_msg:
         return None,error_msg
-    result_msg = result_msg[0]
-    result_img = base64.b64decode(''.join(result_msg.split(',')[1:])) # 截取列表中的第2项到结尾获取base64并解码为图片
+    result_img = b64decode(result_msg[0].split("base64,")[1]) # 截取列表中的第2项到结尾获取base64并解码为图片
     result_img = Image.open(BytesIO(result_img)).convert("RGB") # 载入图片并转换色彩空间为RGB
-    result_msg = image_to_cq(pic2b64(result_img)) # 图片转base64并转cq码
-    return result_msg,error_msg
+    result_img = pic2cq(pic2b64(result_img)) # 图片转base64并转cq码
+    return result_img, error_msg
     
 
 async def get_tags(image: Image, max_try=60):
@@ -330,25 +282,15 @@ async def get_tags(image: Image, max_try=60):
     分析图片并获取对应tags
     置信度取70%以上
     '''
-    url = "https://hf.space/embed/NoCrypt/DeepDanbooru_string"
     result_msg = ""
     error_msg = ""
-    url_push = f'{url}/api/queue/push/'
+    url = get_config('pic_tools', 'img2tag_api')
     b_io = BytesIO()
     image.save(b_io, format='JPEG', quality=90)
     json_data = ["data:image/jpeg;base64," + base64.b64encode(b_io.getvalue()).decode(),0.7] # 阈值0.7，即取置信度70%以上的tag
-    json = {
-        "fn_index": 0,
-        "data": json_data,
-        "session_hash": str(uuid.uuid1()),
-        "action": "predict"
-    }
-    try:
-        _hash = (await(await aiorequests.post(url_push, json=json)).json())['hash'] #获取当前任务的hash
-    except Exception as e:
-        error_msg = f"尝试排队 失败原因:{type(e)}"
-        return result_msg,error_msg
-    result_msg,error_msg = await quene_fetch_(url,_hash,max_try) #获取结果 resj['data']['data']
+    result_msg, error_msg = await easygradio.quene_push_(url, json_data) #获取结果 resj['data']['data']
+    if error_msg:
+        return None,error_msg
     return result_msg[1], error_msg
 
 async def get_imgdata_magic(tags):#way=1时为get，way=0时为post
@@ -359,14 +301,14 @@ async def get_imgdata_magic(tags):#way=1时为get，way=0时为post
     api_url = get_config('NovelAI', 'api')
     token = get_config('NovelAI', 'token')
     try:
-        url = (f"{api_url}got_image") + (f"?tags={tags}")+ (f"&token={token}")
+        url = (f"{api_url}/got_image") + (f"?tags={tags}")+ (f"&token={token}")
         imgdata = await (await aiorequests.get(url, timeout=180)).content
         if len(imgdata) < 5000:
             error_msg = "token冷却中~"
     except Exception as e:
         error_msg = f"请求超时：{type(e)}"
     img = Image.open(BytesIO(imgdata)).convert("RGB")
-    result_msg = image_to_cq(pic2b64(img)) # 图片转base64并转cq码
+    result_msg = pic2cq(pic2b64(img)) # 图片转base64并转cq码
     return result_msg,error_msg
 
 async def img_make(msglist,page = 1):
@@ -397,5 +339,5 @@ async def img_make(msglist,page = 1):
         draw.text((80*column+384*(column-1)+int(region.width/2)-90,80+100*(row-1)+384*(row-1)+region.height),id,font=font,fill = (0, 0, 0))
         draw.text((80*column+384*(column-1)+int(region.width/2)+20,80+100*(row-1)+384*(row-1)+region.height),thumb,font=font,fill = (0, 0, 0))
     imgmes = pic2b64(target) # 将图片转为base64
-    resultmes = image_to_cq(imgmes) # 将图片转为CQ码
+    resultmes = pic2cq(imgmes) # 将图片转为CQ码
     return resultmes

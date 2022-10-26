@@ -8,7 +8,7 @@
 
 ## 注意事项
 
-- **2022-10-22版本更新后，旧配置文件`config.json`与新版无法兼容，请备份好个人api和token数据后删除`config.json`文件，再使用`git pull`命令从仓库拉取更新，获取配置文件模板`config_example.json`后按文档后面提到的配置方法进行操作。若您在使用过程中发生报错，请检查配置文件是否已更新**
+- **2022-10-27版本更新后，旧配置文件`config.json`与新版无法兼容，请备份好个人api和token数据后删除`config.json`文件，再使用`git pull`命令从仓库拉取更新，获取配置文件模板`config_example.json`后按文档后面提到的配置方法进行操作。若您在使用过程中发生报错，请检查配置文件是否已更新**
 
 - **若出现 `ImportError: No module named xxx` 报错，请重装依赖：在插件目录下运行powershell输入`pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple`**
 
@@ -255,6 +255,8 @@
 [ai绘图安全版 - 姬野梦美](https://github.com/jiyemengmei/AI_Draw_safemode)
 
 ## 更新日志
+
+2022-10-27：再次优化图片超分、图片鉴赏、二次元化相关代码
 
 2022-10-25：新增元素法典功能，优化图片超分、图片鉴赏、二次元化相关代码，解决功能使用不稳定问题
 

@@ -335,58 +335,6 @@ async def gen_pic_from_pic(bot, ev: CQEvent):
         traceback.print_exc()
         return
 
-
-@sv.on_keyword(('图片鉴赏', '鉴赏图片', '生成tag', '生成tags'))
-async def generate_tags(bot, ev):
-    # uid = ev['user_id']
-    # gid = ev['group_id']
-    #
-    # num = 1
-    # result, msg = check_lmt(uid, num, gid)  # 检查群权限与个人次数
-    # if result != 0:
-    #     await bot.send(ev, msg)
-    #     return
-    try:
-        msg_list = []
-        image, _, _ = await utils.get_image_and_msg(bot, ev)
-        if not image:
-            await bot.send(ev, '请输入需要分析的图片', at_sender=True)
-            return
-        await bot.send(ev, f"正在生成tags，请稍后...")
-        result_msg,error_msg = await utils.get_tags(image)
-        if error_msg:
-            await bot.send(ev, "鉴赏失败，服务器未返回图片数据", at_sender=True)
-            traceback.print_exc()
-            return
-        else:
-            msg_list.append("图片鉴赏结果为如下")
-            msg_list.append(result_msg)
-            await SendMessageProcess(bot, ev, msg_list, withdraw=False) # 发送消息过程
-    except Exception as e:
-        await bot.send(ev, f"鉴赏失败：{type(e)}", at_sender=True)
-        traceback.print_exc()
-
-@sv.on_keyword(('二次元化', '动漫化'))
-async def animize(bot, ev):
-    try:
-        msg_list = []
-        image, _, _ = await utils.get_image_and_msg(bot, ev)
-        if not image:
-            await bot.send(ev, '请输入需要分析的图片', at_sender=True)
-            return
-        await bot.send(ev, f"正在进入二次元，请稍后...")
-
-        img_msg = await utils.cartoonization(image)
-        if img_msg:
-            msg_list.append(img_msg)
-            await SendMessageProcess(bot, ev, msg_list) # 发送消息过程
-        else:
-            await bot.send(ev, '生成失败，图片被创死了！', at_sender=True)
-            traceback.print_exc()
-    except Exception as e:
-        await bot.send(ev, f"已报错：{type(e)}", at_sender=True)
-        traceback.print_exc()
-
 @sv.on_suffix(('XP排行', 'xp排行'))
 async def get_xp_list(bot, ev):
     try:
@@ -595,6 +543,64 @@ async def get_img_peifang(bot, ev: CQEvent):
         await bot.send(ev, f"报错:{type(e)}",at_sender=True)
         traceback.print_exc()
 
+@sv.on_keyword(('图片鉴赏', '鉴赏图片', '生成tag', '生成tags'))
+async def generate_tags(bot, ev):
+    # uid = ev['user_id']
+    # gid = ev['group_id']
+    #
+    # num = 1
+    # result, msg = check_lmt(uid, num, gid)  # 检查群权限与个人次数
+    # if result != 0:
+    #     await bot.send(ev, msg)
+    #     return
+    try:
+        msg_list = []
+        image, _, _ = await utils.get_image_and_msg(bot, ev)
+        if not image:
+            await bot.send(ev, '请输入需要分析的图片', at_sender=True)
+            return
+        await bot.send(ev, f"正在生成tags，请稍后...")
+        ix=image.size[0] # 获取图片宽度
+        iy=image.size[1] # 获取图片高度
+        if ix * iy > 490000: # 图片像素大于25万像素的，会对其进行缩放
+            image.thumbnail(size=(700, 700)) # 图片等比例缩放
+        result_msg,error_msg = await utils.get_tags(image)
+        if error_msg:
+            await bot.send(ev, f"鉴赏失败：{error_msg}", at_sender=True)
+            traceback.print_exc()
+            return
+        msg_list.append("图片鉴赏结果为如下")
+        msg_list.append(result_msg)
+        await SendMessageProcess(bot, ev, msg_list, withdraw=False) # 发送消息过程
+    except Exception as e:
+        await bot.send(ev, f"鉴赏失败：{type(e)}", at_sender=True)
+        traceback.print_exc()
+
+@sv.on_keyword(('二次元化', '动漫化'))
+async def animize(bot, ev):
+    try:
+        msg_list = []
+        image, _, _ = await utils.get_image_and_msg(bot, ev)
+        if not image:
+            await bot.send(ev, '请输入需要分析的图片', at_sender=True)
+            return
+        await bot.send(ev, f"正在进入二次元，请稍后...")
+        ix=image.size[0] # 获取图片宽度
+        iy=image.size[1] # 获取图片高度
+        if ix * iy > 490000: # 图片像素大于25万像素的，会对其进行缩放
+            image.thumbnail(size=(700, 700)) # 图片等比例缩放
+        img_msg, error_msg= await utils.cartoonization(image)
+        if error_msg:
+            await bot.send(ev, f"二次元化失败：{error_msg}", at_sender=True)
+            traceback.print_exc()
+            return
+        msg_list.append("图片已进入二次元")
+        msg_list.append(img_msg)
+        await SendMessageProcess(bot, ev, msg_list) # 发送消息过程
+    except Exception as e:
+        await bot.send(ev, f"已报错：{type(e)}", at_sender=True)
+        traceback.print_exc()
+
 @sv.on_keyword(('清晰术', '图片超分', '图片放大'))
 async def image4x(bot, ev):
     if get_config("image4x", "Real-CUGAN"):
@@ -644,15 +650,14 @@ async def img_Real_CUGAN(bot, ev):
         except Exception as e:
             await bot.send(bot, ev, f"超分参数输入错误：{type(e)}")
             return
-        img_msg = await utils.get_Real_CUGAN(image, modelname)
-
-        if img_msg:
-            msg_list.append(f"放大倍率：{scale}倍\n降噪等级：{con_cn}\n使用模型：Real_CUGAN")
-            msg_list.append(img_msg)
-            await SendMessageProcess(bot, ev, msg_list) # 发送消息过程
-        else:
-            await bot.send(ev, "清晰术失败，服务器未返回图片数据", at_sender=True)
+        img_msg, error_msg = await utils.get_Real_CUGAN(image, modelname)
+        if error_msg:
+            await bot.send(ev, f"图片超分失败：{error_msg}", at_sender=True)
             traceback.print_exc()
+            return
+        msg_list.append(f"放大倍率：{scale}倍\n降噪等级：{con_cn}\n使用模型：Real_CUGAN")
+        msg_list.append(img_msg)
+        await SendMessageProcess(bot, ev, msg_list) # 发送消息过程
     except Exception as e:
         await bot.send(ev, f"清晰术失败：{type(e)}", at_sender=True)
         traceback.print_exc()
@@ -671,14 +676,14 @@ async def img_Real_ESRGAN(bot, ev):
             await bot.send(ev, f"图片尺寸超过150万像素，将对其进行缩放", at_sender=True)
         await bot.send(ev, f"正在使用Real-ESRGAN模型4倍超分图片，请稍后...")
 
-        img_msg = await utils.get_Real_ESRGAN(image)
-        if img_msg:
-            msg_list.append("放大倍率：4倍\n使用模型：Real-ESRGAN")
-            msg_list.append(img_msg)
-            await SendMessageProcess(bot, ev, msg_list) # 发送消息过程
-        else:
-            await bot.send(ev, '清晰术失败，服务器未返回图片数据', at_sender=True)
+        img_msg, error_msg = await utils.get_Real_ESRGAN(image)
+        if error_msg:
+            await bot.send(ev, f"图片超分失败：{error_msg}", at_sender=True)
             traceback.print_exc()
+            return
+        msg_list.append("放大倍率：4倍\n使用模型：Real-ESRGAN")
+        msg_list.append(img_msg)
+        await SendMessageProcess(bot, ev, msg_list) # 发送消息过程
     except Exception as e:
         await bot.send(ev, f"清晰术失败：{type(e)}", at_sender=True)
         traceback.print_exc()

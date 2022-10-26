@@ -17,7 +17,7 @@ config_default = {
         "limit_word": True  # 是否开启违禁词过滤
     },
     "NovelAI": {
-        "api": "",  # 设置api，例如："http://11.222.333.444:5555/"，结尾的/不能漏
+        "api": "http://91.217.139.190:5010",  # 设置api，默认格式："https://lulu.uedbq.xyz"，
         "token": "",  # 设置你的token，例如："ADGdsvSFGsaA5S2D"，（若你的api无需使用token，留空即可）
         "strength": "0.60" # Denoising strength 与原图的关联程度，越小关联越大
     },
@@ -35,9 +35,13 @@ config_default = {
     },
     "image4x": {
         "Real-CUGAN": True, # Real-CUGAN超分模型开关，可支持2、3、4倍超分，更锐利的线条，更好的纹理保留，虚化区域保留
-        "Real-CUGAN-api": "http://134.175.32.157:9999/api/predict", # Real-CUGAN的api地址。目前接入的是奥帝努斯大佬的GPU服务器，速度更快！
+        "Real-CUGAN-api": "http://134.175.32.157:9999", # Real-CUGAN的api地址。目前接入的是奥帝努斯大佬的GPU服务器，速度更快！默认格式：https://hf.space/embed/{ID}/{仓库名}
         "Real-ESRGAN": False, # 目前存在bug（图片尺寸过大生成的图会很小），故暂时不建议开启
-        "Real-ESRGAN-api": "https://hf.space/embed/akhaliq/Real-ESRGAN/+/api/predict/" # Real-ESRGAN的api地址
+        "Real-ESRGAN-api": "https://hf.space/embed/akhaliq/Real-ESRGAN" # Real-ESRGAN的api地址，默认格式：https://hf.space/embed/{ID}/{仓库名}
+    },
+    "pic_tools":{
+        "img2tag_api": "https://hf.space/embed/NoCrypt/DeepDanbooru_string", # 有排队功能的DeepDanbooru仓库，默认格式：https://hf.space/embed/{ID}/{仓库名}
+        "img2anime_api": "https://hf.space/embed/hylee/White-box-Cartoonization" # 有排队功能的White-box-Cartoonization仓库，默认格式：https://hf.space/embed/{ID}/{仓库名}
     },
     "default_tags": {
         "tags": "miku"  # 如果没有指定tag的话，默认的tag
