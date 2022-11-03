@@ -10,7 +10,7 @@
         "scale": "5.5"
     },
     "亡骨重甲": {
-        "tags": "((masterpiece)), (((best quality))), ((ultra-detailed)), ((illustration)), ((disheveled hair)), heavy colors,{{black soul}}, real light and shadow, Horror\n{{{Undead}}}, {{skulls}}, Skeleton,solo,Tall monsters, sharp teeth, fangs, open mouth,blood,{{white armor}},{{{ delicate armor}}}, medieval greatswords, gilt, dark red textures, precious jewelry, metal punches\nsquat,Metal sword",
+        "tags": "((masterpiece)), (((best quality))), ((ultra-detailed)), ((illustration)), ((disheveled hair)), heavy colors,{{black soul}}, real light and shadow, Horror{{{Undead}}}, {{skulls}}, Skeleton,solo,Tall monsters, sharp teeth, fangs, open mouth,blood,{{white armor}},{{{ delicate armor}}}, medieval greatswords, gilt, dark red textures, precious jewelry, metal punchessquat,Metal sword",
         "ntags": "lowres,bad anatomy,bad hands,text,error,missing fingers,extra digit,fewer digits,cropped,worst quality,low quality,normal quality,jpeg artifacts,signature,watermark,username,blurry,missing arms,long neck,Humpbacked",
         "scale": "7"
     },
@@ -85,8 +85,8 @@
         "scale": "5.5"
     },
     "血肉巨舰": {
-        "tags": "((best quality)),((highly detailed)),((masterpiece)),((ultra-detailed)),,loong background, game cg,official art,extremely detailed CG unity 8k wallpaper,4k\n,illustration,monster,((huge tentacles wrapped around the ship)),(giant tentacles tentacles),thunder and lightning in the sky,rainy,sea,dim light,(((modern war ship))),1 ship,cinematic lighting,ray tracing,detalied light,great whirlpool,in ruin,armament,in ruin turret",
-        "ntags": "low-quality,distorted light, low-quality light, low-quality water, low-quality illustration, low-quality background\nowres,bad anatomy,text,error,missing fingers,extra digit,fewer digits,cropped,worst quality,low quality,normal quality,jpeg artifacts,signature,watermark,username,blurry,missing arms,long neck,Humpbacked,(((windsail ship)))",
+        "tags": "((best quality)),((highly detailed)),((masterpiece)),((ultra-detailed)),,loong background, game cg,official art,extremely detailed CG unity 8k wallpaper,4k,illustration,monster,((huge tentacles wrapped around the ship)),(giant tentacles tentacles),thunder and lightning in the sky,rainy,sea,dim light,(((modern war ship))),1 ship,cinematic lighting,ray tracing,detalied light,great whirlpool,in ruin,armament,in ruin turret",
+        "ntags": "low-quality,distorted light, low-quality light, low-quality water, low-quality illustration, low-quality backgroundowres,bad anatomy,text,error,missing fingers,extra digit,fewer digits,cropped,worst quality,low quality,normal quality,jpeg artifacts,signature,watermark,username,blurry,missing arms,long neck,Humpbacked,(((windsail ship)))",
         "scale": "5.5"
     },
     "穿越怪诞之门": {
@@ -150,7 +150,7 @@
         "scale": "5.5"
     },
     "丧钟为你我而鸣": {
-        "tags": "(((Plague Doctor))),Crow Mask,(crow), Black Hood, Plague, Black Death,Carrying a candle lamp\n{{masterpiece}}, the best quality, official art, 4k, the best quality, extremely detailed CG unified 8k, illustrations, high resolution, masterpiece, contour deepening, contour deepening, long focal length, depth of field",
+        "tags": "(((Plague Doctor))),Crow Mask,(crow), Black Hood, Plague, Black Death,Carrying a candle lamp{{masterpiece}}, the best quality, official art, 4k, the best quality, extremely detailed CG unified 8k, illustrations, high resolution, masterpiece, contour deepening, contour deepening, long focal length, depth of field",
         "ntags": "",
         "scale": "5.5"
     },
