@@ -212,7 +212,7 @@ async def get_xp_pic_(msg,gid,uid):
         error_msg = f'暂无{msg}的XP信息'
     return resultmes,error_msg
 
-async def predict_push(url,json_data,max_try=60):
+async def predict_push(url,json_data):
     '''
     predict请求，适用绝大多数gradio框架
     一般情况下推荐适用该方式请求数据
@@ -224,7 +224,7 @@ async def predict_push(url,json_data,max_try=60):
         "data": json_data
     }
     try:
-        resj = await (await aiorequests.post(url, json=params,timeout = max_try)).json()
+        resj = await (await aiorequests.post(url, json=params, timeout = 180)).json()
         # data_path = Path(__file__).parent / "test" / "二次元化数据.json"
         # json_save = json.dumps(resj, indent=4, ensure_ascii=False) # 保存格式化的json字符串
         # data_path.write_text(json_save, encoding="utf-8")

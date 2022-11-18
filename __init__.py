@@ -610,9 +610,9 @@ async def img_Real_CUGAN(bot, ev):
             return
         ix=image.size[0] # 获取图片宽度
         iy=image.size[1] # 获取图片高度
-        if ix * iy > 1500000: # 图片像素大于150万像素的，会对其进行缩放
-            image.thumbnail(size=(1300, 1300)) # 图片等比例缩放
-            await bot.send(ev, f"图片尺寸超过150万像素，将对其进行缩放", at_sender=True)
+        if ix * iy > 1000000: # 图片像素大于100万像素的，会对其进行缩放
+            image.thumbnail(size=(1000, 1000)) # 图片等比例缩放
+            await bot.send(ev, f"图片尺寸超过100万像素，将对其进行缩放", at_sender=True)
         msg = ev.message.extract_plain_text().strip()
         try:
             if "二倍放大" in msg or "2倍放大" in msg:
@@ -662,9 +662,9 @@ async def img_Real_ESRGAN(bot, ev):
             return
         ix=image.size[0] # 获取图片宽度
         iy=image.size[1] # 获取图片高度
-        if ix * iy > 1500000: # 图片像素大于150万像素的，会对其进行缩放
-            image.thumbnail(size=(1300, 1300)) # 图片等比例缩放
-            await bot.send(ev, f"图片尺寸超过150万像素，将对其进行缩放", at_sender=True)
+        if ix * iy > 1000000: # 图片像素大于100万像素的，会对其进行缩放
+            image.thumbnail(size=(1000, 1000)) # 图片等比例缩放
+            await bot.send(ev, f"图片尺寸超过100万像素，将对其进行缩放", at_sender=True)
         await bot.send(ev, f"正在使用Real-ESRGAN模型4倍超分图片，请稍后...")
 
         img_msg, error_msg = await utils.get_Real_ESRGAN(image)

@@ -16,7 +16,7 @@
         "limit_word": true
     },
     "NovelAI": {
-        "api": "http://91.217.139.190:5010",
+        "api": "https://lulu.uedbq.xyz",
         "token": "",
         "strength": "0.60"
     },
@@ -34,7 +34,7 @@
     },
     "image4x": {
         "Real-CUGAN": true,
-        "Real-CUGAN-api": "http://134.175.32.157:9999/api/predict",
+        "Real-CUGAN-api": "https://dianxian-real-cugan.hf.space/api/predict",
         "Real-ESRGAN": false,
         "Real-ESRGAN-api": "https://akhaliq-real-esrgan.hf.space/api/predict/"
     },
