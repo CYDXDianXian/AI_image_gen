@@ -1,4 +1,24 @@
+# 说明
+
+- **由于本人工作繁忙，近期开启996模式，实在挤不出时间更新和维护本仓库了，故归档仓库，暂停更新**
+- **若要获取最新的AI绘图插件可以使用sans佬的仓库：[ai_setu - sans](https://github.com/pcrbot/ai_setu) ，该库更新更快功能更全面**
+
+.
+
+.
+
+.
+
+.
+
+.
+
+.
+
+> 以下为归档前的说明
+
 # AI_image_gen
+
  AI绘图HoshinoBot插件版
 
 仓库地址：https://github.com/CYDXDianXian/AI_image_gen
@@ -259,6 +279,8 @@
 [ai绘图安全版 - 姬野梦美](https://github.com/jiyemengmei/AI_Draw_safemode)
 
 ## 更新日志
+
+2022-11-21：仓库归档，停止更新。若要使用后续新功能请使用sans佬的仓库[ai_setu - sans](https://github.com/pcrbot/ai_setu)
 
 2022-11-19：更新api地址，解决图片超分和ai绘图不可用的问题
 
